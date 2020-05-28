@@ -9,10 +9,10 @@ import (
 	"github.com/giantswarm/micrologger"
 	"github.com/spf13/viper"
 
-	"github.com/giantswarm/template-operator/flag"
-	"github.com/giantswarm/template-operator/pkg/project"
-	"github.com/giantswarm/template-operator/server"
-	"github.com/giantswarm/template-operator/service"
+	"github.com/giantswarm/organization-operator/flag"
+	"github.com/giantswarm/organization-operator/pkg/project"
+	"github.com/giantswarm/organization-operator/server"
+	"github.com/giantswarm/organization-operator/service"
 )
 
 var (
