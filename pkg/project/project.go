@@ -1,7 +1,7 @@
 package project
 
 var (
-	description = "The organization-operator does something."
+	description = "Organization operator manages namespaces based on Organization CR."
 	gitSHA      = "n/a"
 	name        = "organization-operator"
 	source      = "https://github.com/giantswarm/organization-operator"

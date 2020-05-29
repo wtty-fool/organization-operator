@@ -1,4 +1,4 @@
-package test
+package organization
 
 import (
 	"github.com/giantswarm/k8sclient/v3/pkg/k8sclient"
@@ -7,7 +7,18 @@ import (
 )
 
 const (
-	Name = "todo"
+	Name = "organization"
+)
+
+var (
+	forbiddenOrganizationPrefixes = []string{
+		"default",
+		"kube-",
+		"giantswarm",
+		"monitoring",
+		"gatekeeper",
+		"draughtsman",
+	}
 )
 
 type Config struct {
@@ -16,16 +27,22 @@ type Config struct {
 }
 
 type Resource struct {
-	logger micrologger.Logger
+	k8sClient k8sclient.Interface
+	logger    micrologger.Logger
 }
 
 func New(config Config) (*Resource, error) {
+	if config.K8sClient == nil {
+		return nil, microerror.Maskf(invalidConfigError, "%T.K8sClient must not be empty", config)
+	}
 	if config.Logger == nil {
+
 		return nil, microerror.Maskf(invalidConfigError, "%T.Logger must not be empty", config)
 	}
 
 	r := &Resource{
-		logger: config.Logger,
+		k8sClient: config.K8sClient,
+		logger:    config.Logger,
 	}
 
 	return r, nil
