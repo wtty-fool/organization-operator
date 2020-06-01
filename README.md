@@ -16,7 +16,7 @@
       and commit your changes.
 
 -->
-[![CircleCI](https://circleci.com/gh/giantswarm/template-operator.svg?&style=shield)](https://circleci.com/gh/giantswarm/template-operator) [![Docker Repository on Quay](https://quay.io/repository/giantswarm/template-operator/status "Docker Repository on Quay")](https://quay.io/repository/giantswarm/template-operator)
+[![CircleCI](https://circleci.com/gh/giantswarm/organization-operator.svg?&style=shield)](https://circleci.com/gh/giantswarm/organization-operator) [![Docker Repository on Quay](https://quay.io/repository/giantswarm/organization-operator/status "Docker Repository on Quay")](https://quay.io/repository/giantswarm/organization-operator)
 
 # organization-operator
 
