@@ -15,7 +15,6 @@ var (
 	forbiddenOrganizationPrefixes = []string{
 		"default",
 		"kube-",
-		"giantswarm",
 		"monitoring",
 		"gatekeeper",
 		"draughtsman",
