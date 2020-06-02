@@ -10,6 +10,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/giantswarm/organization-operator/pkg/label"
 	"github.com/giantswarm/organization-operator/service/controller/key"
 )
 
@@ -29,6 +30,9 @@ func (r *Resource) EnsureCreated(ctx context.Context, obj interface{}) error {
 	newNamespace := corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: org.ObjectMeta.Name,
+			Labels: map[string]string{
+				label.Organization: org.ObjectMeta.Name,
+			},
 		},
 	}
 
