@@ -6,7 +6,6 @@ import (
 
 	"github.com/giantswarm/microerror"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/giantswarm/organization-operator/service/controller/key"
 )
@@ -17,10 +16,9 @@ func (r *Resource) EnsureDeleted(ctx context.Context, obj interface{}) error {
 		return microerror.Mask(err)
 	}
 
-	err = r.k8sClient.K8sClient().CoreV1().Namespaces().Delete(
-		fmt.Sprintf("%s%s", organizationNamePrefix, org.ObjectMeta.Name),
-		&metav1.DeleteOptions{},
-	)
+	orgNamespace := newOrganizationNamespace(org.ObjectMeta.Name)
+
+	err = r.k8sClient.CtrlClient().Delete(context.Background(), orgNamespace)
 	if apierrors.IsNotFound(err) {
 		r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("organization namespace %#q does not exist", org.ObjectMeta.Name))
 		return nil
