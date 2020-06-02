@@ -7,18 +7,8 @@ import (
 )
 
 const (
-	Name = "organization"
-)
-
-var (
-	forbiddenOrganizationPrefixes = []string{
-		"default",
-		"kube-",
-		"giantswarm",
-		"monitoring",
-		"gatekeeper",
-		"draughtsman",
-	}
+	Name                   = "organization"
+	organizationNamePrefix = "org-"
 )
 
 type Config struct {
