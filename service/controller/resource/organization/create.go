@@ -29,7 +29,7 @@ func (r *Resource) EnsureCreated(ctx context.Context, obj interface{}) error {
 
 	newNamespace := corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: org.ObjectMeta.Name,
+			Name: fmt.Sprintf("%s%s", organizationNamePrefix, org.ObjectMeta.Name),
 			Labels: map[string]string{
 				label.Organization: org.ObjectMeta.Name,
 			},
@@ -38,12 +38,12 @@ func (r *Resource) EnsureCreated(ctx context.Context, obj interface{}) error {
 
 	_, err = r.k8sClient.K8sClient().CoreV1().Namespaces().Create(&newNamespace)
 	if apierrors.IsAlreadyExists(err) {
-		r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("organization namespace %#q already exists", org.ObjectMeta.Name))
+		r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("organization namespace %#q already exists", newNamespace.ObjectMeta.Name))
 		return nil
 	} else if err != nil {
 		return microerror.Mask(err)
 	}
 
-	r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("organization namespace %#q has been created", org.ObjectMeta.Name))
+	r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("organization namespace %#q has been created", newNamespace.ObjectMeta.Name))
 	return nil
 }

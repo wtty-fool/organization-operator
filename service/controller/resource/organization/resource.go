@@ -7,7 +7,8 @@ import (
 )
 
 const (
-	Name = "organization"
+	Name                   = "organization"
+	organizationNamePrefix = "org-"
 )
 
 var (
