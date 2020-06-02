@@ -17,7 +17,10 @@ func (r *Resource) EnsureDeleted(ctx context.Context, obj interface{}) error {
 		return microerror.Mask(err)
 	}
 
-	err = r.k8sClient.K8sClient().CoreV1().Namespaces().Delete(org.ObjectMeta.Name, &metav1.DeleteOptions{})
+	err = r.k8sClient.K8sClient().CoreV1().Namespaces().Delete(
+		fmt.Sprintf("%s%s", organizationNamePrefix, org.ObjectMeta.Name),
+		&metav1.DeleteOptions{},
+	)
 	if apierrors.IsNotFound(err) {
 		r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("organization namespace %#q does not exist", org.ObjectMeta.Name))
 		return nil
