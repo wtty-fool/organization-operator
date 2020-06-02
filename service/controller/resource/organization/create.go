@@ -20,9 +20,11 @@ func (r *Resource) EnsureCreated(ctx context.Context, obj interface{}) error {
 		return microerror.Mask(err)
 	}
 
-	if !strings.HasPrefix(org.ObjectMeta.Name, organizationNamePrefix) {
-		r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("organization name %#q has to start with %#q", org.ObjectMeta.Name, organizationNamePrefix))
-		return nil
+	for _, prefix := range forbiddenOrganizationPrefixes {
+		if strings.HasPrefix(org.ObjectMeta.Name, prefix) {
+			r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("organization name %#q cannot start with %q", org.ObjectMeta.Name, prefix))
+			return nil
+		}
 	}
 
 	newNamespace := corev1.Namespace{
