@@ -1,8 +1,7 @@
 package controller
 
 import (
-	// If your operator watches a CRD import it here.
-	// "github.com/giantswarm/apiextensions/pkg/apis/application/v1alpha1"
+	securityv1alpha1 "github.com/giantswarm/apiextensions/pkg/apis/security/v1alpha1"
 	"github.com/giantswarm/k8sclient/v3/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
@@ -10,26 +9,25 @@ import (
 	"github.com/giantswarm/operatorkit/resource"
 	"github.com/giantswarm/operatorkit/resource/wrapper/metricsresource"
 	"github.com/giantswarm/operatorkit/resource/wrapper/retryresource"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	"github.com/giantswarm/template-operator/pkg/project"
-	"github.com/giantswarm/template-operator/service/controller/resource/test"
+	"github.com/giantswarm/organization-operator/pkg/project"
+	organization "github.com/giantswarm/organization-operator/service/controller/resource/organization"
 )
 
-type TODOConfig struct {
+type OrganizationConfig struct {
 	K8sClient k8sclient.Interface
 	Logger    micrologger.Logger
 }
 
-type TODO struct {
+type Organization struct {
 	*controller.Controller
 }
 
-func NewTODO(config TODOConfig) (*TODO, error) {
+func NewOrganization(config OrganizationConfig) (*Organization, error) {
 	var err error
 
-	resources, err := newTODOResources(config)
+	resources, err := newOrganizationResources(config)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
@@ -40,13 +38,13 @@ func NewTODO(config TODOConfig) (*TODO, error) {
 			K8sClient: config.K8sClient,
 			Logger:    config.Logger,
 			NewRuntimeObjectFunc: func() runtime.Object {
-				return new(corev1.Pod)
+				return new(securityv1alpha1.Organization)
 			},
 			Resources: resources,
 
 			// Name is used to compute finalizer names. This here results in something
-			// like operatorkit.giantswarm.io/template-operator-todo-controller.
-			Name: project.Name() + "-todo-controller",
+			// like operatorkit.giantswarm.io/organization-operator-todo-controller.
+			Name: project.Name() + "-organization-controller",
 		}
 
 		operatorkitController, err = controller.New(c)
@@ -55,31 +53,31 @@ func NewTODO(config TODOConfig) (*TODO, error) {
 		}
 	}
 
-	c := &TODO{
+	c := &Organization{
 		Controller: operatorkitController,
 	}
 
 	return c, nil
 }
 
-func newTODOResources(config TODOConfig) ([]resource.Interface, error) {
+func newOrganizationResources(config OrganizationConfig) ([]resource.Interface, error) {
 	var err error
 
-	var testResource resource.Interface
+	var orgResource resource.Interface
 	{
-		c := test.Config{
+		c := organization.Config{
 			K8sClient: config.K8sClient,
 			Logger:    config.Logger,
 		}
 
-		testResource, err = test.New(c)
+		orgResource, err = organization.New(c)
 		if err != nil {
 			return nil, microerror.Mask(err)
 		}
 	}
 
 	resources := []resource.Interface{
-		testResource,
+		orgResource,
 	}
 
 	{

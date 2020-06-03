@@ -6,6 +6,7 @@ import (
 	"context"
 	"sync"
 
+	securityv1alpha1 "github.com/giantswarm/apiextensions/pkg/apis/security/v1alpha1"
 	"github.com/giantswarm/k8sclient/v3/pkg/k8sclient"
 	"github.com/giantswarm/k8sclient/v3/pkg/k8srestconfig"
 	"github.com/giantswarm/microendpoint/service/version"
@@ -14,10 +15,10 @@ import (
 	"github.com/spf13/viper"
 	"k8s.io/client-go/rest"
 
-	"github.com/giantswarm/template-operator/flag"
-	"github.com/giantswarm/template-operator/pkg/project"
-	"github.com/giantswarm/template-operator/service/collector"
-	"github.com/giantswarm/template-operator/service/controller"
+	"github.com/giantswarm/organization-operator/flag"
+	"github.com/giantswarm/organization-operator/pkg/project"
+	"github.com/giantswarm/organization-operator/service/collector"
+	"github.com/giantswarm/organization-operator/service/controller"
 )
 
 // Config represents the configuration used to create a new service.
@@ -32,7 +33,7 @@ type Service struct {
 	Version *version.Service
 
 	bootOnce          sync.Once
-	todoController    *controller.TODO
+	orgController     *controller.Organization
 	operatorCollector *collector.Set
 }
 
@@ -84,10 +85,9 @@ func New(config Config) (*Service, error) {
 	{
 		c := k8sclient.ClientsConfig{
 			Logger: config.Logger,
-			// TODO: If you are watching a new CRD, include here the AddToScheme function from apiextensions.
-			// SchemeBuilder: k8sclient.SchemeBuilder{
-			//     corev1alpha1.AddToScheme,
-			// },
+			SchemeBuilder: k8sclient.SchemeBuilder{
+				securityv1alpha1.AddToScheme,
+			},
 			RestConfig: restConfig,
 		}
 
@@ -97,15 +97,15 @@ func New(config Config) (*Service, error) {
 		}
 	}
 
-	var todoController *controller.TODO
+	var orgController *controller.Organization
 	{
 
-		c := controller.TODOConfig{
+		c := controller.OrganizationConfig{
 			K8sClient: k8sClient,
 			Logger:    config.Logger,
 		}
 
-		todoController, err = controller.NewTODO(c)
+		orgController, err = controller.NewOrganization(c)
 		if err != nil {
 			return nil, microerror.Mask(err)
 		}
@@ -144,7 +144,7 @@ func New(config Config) (*Service, error) {
 		Version: versionService,
 
 		bootOnce:          sync.Once{},
-		todoController:    todoController,
+		orgController:     orgController,
 		operatorCollector: operatorCollector,
 	}
 
@@ -154,7 +154,6 @@ func New(config Config) (*Service, error) {
 func (s *Service) Boot(ctx context.Context) {
 	s.bootOnce.Do(func() {
 		go s.operatorCollector.Boot(ctx) // nolint:errcheck
-
-		go s.todoController.Boot(ctx)
+		go s.orgController.Boot(ctx)
 	})
 }

@@ -1,5 +1,5 @@
 image:
-  name: "giantswarm/template-operator"
+  name: "giantswarm/organization-operator"
   tag: "[[ .Version ]]"
 Installation:
   V1:

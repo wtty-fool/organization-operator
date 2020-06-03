@@ -1,17 +1,12 @@
 package project
 
 var (
-	bundleVersion = "0.0.1"
-	description   = "The template-operator does something."
-	gitSHA        = "n/a"
-	name          = "template-operator"
-	source        = "https://github.com/giantswarm/template-operator"
-	version       = "1.0.0-dev"
+	description = "Organization operator manages namespaces based on Organization CR."
+	gitSHA      = "n/a"
+	name        = "organization-operator"
+	source      = "https://github.com/giantswarm/organization-operator"
+	version     = "0.1.0-dev"
 )
-
-func BundleVersion() string {
-	return bundleVersion
-}
 
 func Description() string {
 	return description
