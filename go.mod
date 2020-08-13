@@ -3,7 +3,7 @@ module github.com/giantswarm/organization-operator
 go 1.14
 
 require (
-	github.com/giantswarm/apiextensions v0.4.15
+	github.com/giantswarm/apiextensions v0.4.20
 	github.com/giantswarm/exporterkit v0.2.0
 	github.com/giantswarm/k8sclient/v3 v3.1.2
 	github.com/giantswarm/microendpoint v0.2.0
@@ -11,11 +11,11 @@ require (
 	github.com/giantswarm/microkit v0.2.1
 	github.com/giantswarm/micrologger v0.3.1
 	github.com/giantswarm/operatorkit v1.2.0
-	github.com/prometheus/client_golang v1.3.0
+	github.com/prometheus/client_golang v1.5.0
 	github.com/spf13/viper v1.6.2
-	k8s.io/api v0.16.6
-	k8s.io/apimachinery v0.16.6
-	k8s.io/client-go v0.16.6
+	k8s.io/api v0.17.2
+	k8s.io/apimachinery v0.17.2
+	k8s.io/client-go v0.17.2
 )
 
 replace (
