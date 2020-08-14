@@ -1,14 +1,14 @@
 package controller
 
 import (
-	securityv1alpha1 "github.com/giantswarm/apiextensions/pkg/apis/security/v1alpha1"
-	"github.com/giantswarm/k8sclient/v3/pkg/k8sclient"
+	securityv1alpha1 "github.com/giantswarm/apiextensions/v2/pkg/apis/security/v1alpha1"
+	"github.com/giantswarm/k8sclient/v4/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
-	"github.com/giantswarm/operatorkit/controller"
-	"github.com/giantswarm/operatorkit/resource"
-	"github.com/giantswarm/operatorkit/resource/wrapper/metricsresource"
-	"github.com/giantswarm/operatorkit/resource/wrapper/retryresource"
+	"github.com/giantswarm/operatorkit/v2/pkg/controller"
+	"github.com/giantswarm/operatorkit/v2/pkg/resource"
+	"github.com/giantswarm/operatorkit/v2/pkg/resource/wrapper/metricsresource"
+	"github.com/giantswarm/operatorkit/v2/pkg/resource/wrapper/retryresource"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"github.com/giantswarm/organization-operator/pkg/project"

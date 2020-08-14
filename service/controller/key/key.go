@@ -1,7 +1,7 @@
 package key
 
 import (
-	securityv1alpha1 "github.com/giantswarm/apiextensions/pkg/apis/security/v1alpha1"
+	securityv1alpha1 "github.com/giantswarm/apiextensions/v2/pkg/apis/security/v1alpha1"
 	"github.com/giantswarm/microerror"
 )
 
