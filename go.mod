@@ -3,7 +3,7 @@ module github.com/giantswarm/organization-operator
 go 1.14
 
 require (
-	github.com/giantswarm/apiextensions/v2 v2.0.0
+	github.com/giantswarm/apiextensions/v2 v2.0.1
 	github.com/giantswarm/exporterkit v0.2.0
 	github.com/giantswarm/k8sclient/v4 v4.0.0
 	github.com/giantswarm/microendpoint v0.2.0
