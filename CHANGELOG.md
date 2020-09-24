@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2020-09-24
+
 ### Changed
 
 - Updated Kubernetes dependencies to v1.18.9 and operatorkit to v2.0.1.
@@ -43,7 +45,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/giantswarm/organization-operator/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/giantswarm/organization-operator/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/giantswarm/organization-operator/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/giantswarm/organization-operator/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/giantswarm/organization-operator/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/giantswarm/organization-operator/compare/v0.1.0...v0.2.0
