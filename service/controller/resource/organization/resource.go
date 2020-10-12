@@ -2,6 +2,7 @@ package organization
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/giantswarm/k8sclient/v4/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
@@ -62,7 +63,7 @@ func (r *Resource) Name() string {
 func newOrganizationNamespace(organizationName string) *corev1.Namespace {
 	return &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: fmt.Sprintf("%s%s", organizationNamePrefix, organizationName),
+			Name: fmt.Sprintf("%s%s", organizationNamePrefix, strings.ToLower(organizationName)),
 			Labels: map[string]string{
 				label.Organization: organizationName,
 				label.ManagedBy:    project.Name(),
