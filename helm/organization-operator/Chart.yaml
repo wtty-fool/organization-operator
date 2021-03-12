@@ -4,3 +4,5 @@ description: "Chart holding organization-operator."
 home: "https://github.com/giantswarm/organization-operator"
 name: "organization-operator"
 version: "[[ .Version ]]"
+annotations:
+  application.giantswarm.io/team: "biscuit"
