@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Save created namespace in Organization status field.
+
+### Changed
+
+- Updated `apiextensions` dependency to v3.
+- Updated `operatorkit` dependency to v4.
+- Updated `k8sclient` dependency to v5.
+
 ## [0.5.0] - 2020-09-24
 
 ### Changed
