@@ -36,5 +36,12 @@ func (r *Resource) EnsureCreated(ctx context.Context, obj interface{}) error {
 	}
 
 	r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("created organization namespace %#q", orgNamespace.Name))
+
+	org.Status.Namespace = orgNamespace.Name
+	err = r.k8sClient.CtrlClient().Status().Update(ctx, &org)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+
 	return nil
 }
