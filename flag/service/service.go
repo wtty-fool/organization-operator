@@ -3,6 +3,7 @@ package service
 import (
 	"github.com/giantswarm/operatorkit/v2/pkg/flag/service/kubernetes"
 
+	"github.com/giantswarm/organization-operator/flag/service/legacycredentials"
 	"github.com/giantswarm/organization-operator/flag/service/legacyorganizations"
 )
 
@@ -10,4 +11,5 @@ import (
 type Service struct {
 	Kubernetes          kubernetes.Kubernetes
 	LegacyOrganizations legacyorganizations.LegacyOrganizations
+	LegacyCredentials   legacycredentials.LegacyCredentials
 }

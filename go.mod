@@ -6,6 +6,7 @@ require (
 	github.com/giantswarm/api-schema v0.7.1 // indirect
 	github.com/giantswarm/apiextensions/v2 v2.6.2
 	github.com/giantswarm/companyd-client-go v0.6.1
+	github.com/giantswarm/credentiald/v2 v2.0.1
 	github.com/giantswarm/exporterkit v0.2.1
 	github.com/giantswarm/k8sclient/v4 v4.1.0
 	github.com/giantswarm/k8smetadata v0.3.0
@@ -16,6 +17,7 @@ require (
 	github.com/giantswarm/operatorkit/v2 v2.0.2
 	github.com/prometheus/client_golang v1.10.0
 	github.com/spf13/viper v1.7.1
+	gopkg.in/resty.v1 v1.12.0
 	k8s.io/api v0.18.18
 	k8s.io/apimachinery v0.18.18
 	k8s.io/client-go v0.18.18

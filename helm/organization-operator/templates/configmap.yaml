@@ -23,3 +23,5 @@ data:
           keyFile: ''
       legacyorganizations:
         address: 'http://companyd:8000'
+      legacycredentials:
+        address: 'http://credentiald:8000'

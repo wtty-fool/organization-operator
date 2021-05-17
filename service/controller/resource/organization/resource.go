@@ -10,6 +10,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	companyclient "github.com/giantswarm/companyd-client-go"
+	credentialclient "github.com/giantswarm/credentiald/v2/client"
 
 	"github.com/giantswarm/organization-operator/pkg/label"
 	"github.com/giantswarm/organization-operator/pkg/project"
@@ -31,9 +32,10 @@ var (
 )
 
 type Config struct {
-	K8sClient       k8sclient.Interface
-	Logger          micrologger.Logger
-	LegacyOrgClient *companyclient.Client
+	K8sClient              k8sclient.Interface
+	Logger                 micrologger.Logger
+	LegacyOrgClient        *companyclient.Client
+	LegacyCredentialClient *credentialclient.Client
 }
 
 type Resource struct {
