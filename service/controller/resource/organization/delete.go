@@ -7,6 +7,7 @@ import (
 	companyclient "github.com/giantswarm/companyd-client-go"
 	legacyCredentialLister "github.com/giantswarm/credentiald/v2/service/lister"
 	"github.com/giantswarm/microerror"
+	"github.com/giantswarm/operatorkit/v2/pkg/controller/context/finalizerskeptcontext"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
 	"github.com/giantswarm/organization-operator/service/controller/key"
@@ -35,6 +36,9 @@ func (r *Resource) EnsureDeleted(ctx context.Context, obj interface{}) error {
 
 	if len(legacyCredentials) > 0 {
 		r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("found legacy credentials for organization %#q", legacyOrgName))
+
+		finalizerskeptcontext.SetKept(ctx)
+
 		return nil
 	}
 
