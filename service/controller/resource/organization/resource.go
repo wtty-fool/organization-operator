@@ -39,9 +39,10 @@ type Config struct {
 }
 
 type Resource struct {
-	k8sClient       k8sclient.Interface
-	logger          micrologger.Logger
-	legacyOrgClient *companyclient.Client
+	k8sClient              k8sclient.Interface
+	logger                 micrologger.Logger
+	legacyOrgClient        *companyclient.Client
+	legacyCredentialClient *credentialclient.Client
 }
 
 func New(config Config) (*Resource, error) {
@@ -55,11 +56,15 @@ func New(config Config) (*Resource, error) {
 	if config.LegacyOrgClient == nil {
 		return nil, microerror.Maskf(invalidConfigError, "%T.LegacyOrgClient must not be empty", config)
 	}
+	if config.LegacyCredentialClient == nil {
+		return nil, microerror.Maskf(invalidConfigError, "%T.LegacyCredentialClient must not be empty", config)
+	}
 
 	r := &Resource{
-		k8sClient:       config.K8sClient,
-		logger:          config.Logger,
-		legacyOrgClient: config.LegacyOrgClient,
+		k8sClient:              config.K8sClient,
+		logger:                 config.Logger,
+		legacyOrgClient:        config.LegacyOrgClient,
+		legacyCredentialClient: config.LegacyCredentialClient,
 	}
 
 	return r, nil

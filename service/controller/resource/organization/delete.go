@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	companyclient "github.com/giantswarm/companyd-client-go"
+	legacyCredentialLister "github.com/giantswarm/credentiald/v2/service/lister"
 	"github.com/giantswarm/microerror"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
@@ -18,7 +19,26 @@ func (r *Resource) EnsureDeleted(ctx context.Context, obj interface{}) error {
 	}
 
 	legacyOrgName := key.LegacyOrganizationName(&org)
-	r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("deleting legacy organization namespace %#q", legacyOrgName))
+
+	r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("listing legacy credentials for organization %#q", legacyOrgName))
+
+	var legacyCredentials []legacyCredentialLister.Response
+	{
+		legacyCredentialRequest := legacyCredentialLister.Request{
+			Organization: legacyOrgName,
+		}
+		legacyCredentials, err = r.legacyCredentialClient.List(ctx, legacyCredentialRequest)
+		if err != nil {
+			return microerror.Mask(err)
+		}
+	}
+
+	if len(legacyCredentials) > 0 {
+		r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("found legacy credentials for organization %#q", legacyOrgName))
+		return nil
+	}
+
+	r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("deleting legacy organization %#q", legacyOrgName))
 
 	err = r.legacyOrgClient.DeleteCompany(legacyOrgName)
 	if companyclient.IsErrCompanyNotFound(err) {
