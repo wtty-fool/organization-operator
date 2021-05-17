@@ -11,13 +11,18 @@ import (
 	"github.com/giantswarm/operatorkit/v2/pkg/resource/wrapper/retryresource"
 	"k8s.io/apimachinery/pkg/runtime"
 
+	companyclient "github.com/giantswarm/companyd-client-go"
+	credentialclient "github.com/giantswarm/credentiald/v2/client"
+
 	"github.com/giantswarm/organization-operator/pkg/project"
 	organization "github.com/giantswarm/organization-operator/service/controller/resource/organization"
 )
 
 type OrganizationConfig struct {
-	K8sClient k8sclient.Interface
-	Logger    micrologger.Logger
+	K8sClient              k8sclient.Interface
+	Logger                 micrologger.Logger
+	LegacyOrgClient        *companyclient.Client
+	LegacyCredentialClient *credentialclient.Client
 }
 
 type Organization struct {
@@ -66,8 +71,10 @@ func newOrganizationResources(config OrganizationConfig) ([]resource.Interface, 
 	var orgResource resource.Interface
 	{
 		c := organization.Config{
-			K8sClient: config.K8sClient,
-			Logger:    config.Logger,
+			K8sClient:              config.K8sClient,
+			Logger:                 config.Logger,
+			LegacyOrgClient:        config.LegacyOrgClient,
+			LegacyCredentialClient: config.LegacyCredentialClient,
 		}
 
 		orgResource, err = organization.New(c)

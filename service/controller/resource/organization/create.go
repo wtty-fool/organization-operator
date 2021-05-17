@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	companyclient "github.com/giantswarm/companyd-client-go"
 	"github.com/giantswarm/microerror"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
@@ -36,5 +37,22 @@ func (r *Resource) EnsureCreated(ctx context.Context, obj interface{}) error {
 	}
 
 	r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("created organization namespace %#q", orgNamespace.Name))
+
+	legacyOrgName := key.LegacyOrganizationName(&org)
+	r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("creating legacy organization %#q", legacyOrgName))
+
+	legacyOrgFields := companyclient.CompanyFields{
+		DefaultCluster: "deprecated",
+	}
+	err = r.legacyOrgClient.CreateCompany(legacyOrgName, legacyOrgFields)
+	if companyclient.IsErrCompanyAlreadyExists(err) {
+		r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("legacy organization %#q already exists", legacyOrgName))
+		return nil
+	} else if err != nil {
+		return microerror.Mask(err)
+	}
+
+	r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("created legacy organization %#q", legacyOrgName))
+
 	return nil
 }

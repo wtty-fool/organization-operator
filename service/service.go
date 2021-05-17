@@ -5,14 +5,18 @@ package service
 import (
 	"context"
 	"sync"
+	"time"
 
 	securityv1alpha1 "github.com/giantswarm/apiextensions/v2/pkg/apis/security/v1alpha1"
+	companyclient "github.com/giantswarm/companyd-client-go"
+	credentialclient "github.com/giantswarm/credentiald/v2/client"
 	"github.com/giantswarm/k8sclient/v4/pkg/k8sclient"
 	"github.com/giantswarm/k8sclient/v4/pkg/k8srestconfig"
 	"github.com/giantswarm/microendpoint/service/version"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	"github.com/spf13/viper"
+	"gopkg.in/resty.v1"
 	"k8s.io/client-go/rest"
 
 	"github.com/giantswarm/organization-operator/flag"
@@ -97,12 +101,38 @@ func New(config Config) (*Service, error) {
 		}
 	}
 
+	var legacyOrgClient *companyclient.Client
+	{
+		serviceAddress := config.Viper.GetString(config.Flag.Service.LegacyOrganizations.Address)
+
+		legacyOrgClient, err = companyclient.Dial(serviceAddress)
+		if err != nil {
+			return nil, microerror.Mask(err)
+		}
+	}
+
+	var legacyCredentialClient *credentialclient.Client
+	{
+		c := credentialclient.Config{
+			Logger:     config.Logger,
+			RestClient: resty.New().SetTimeout(15 * time.Second).SetRetryCount(5),
+			Address:    config.Viper.GetString(config.Flag.Service.LegacyCredentials.Address),
+		}
+
+		legacyCredentialClient, err = credentialclient.New(c)
+		if err != nil {
+			return nil, microerror.Mask(err)
+		}
+	}
+
 	var orgController *controller.Organization
 	{
 
 		c := controller.OrganizationConfig{
-			K8sClient: k8sClient,
-			Logger:    config.Logger,
+			K8sClient:              k8sClient,
+			Logger:                 config.Logger,
+			LegacyOrgClient:        legacyOrgClient,
+			LegacyCredentialClient: legacyCredentialClient,
 		}
 
 		orgController, err = controller.NewOrganization(c)

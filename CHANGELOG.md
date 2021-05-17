@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Also delete legacy `companyd` organizations when deleting `Organization` CRs.
+- Prevent deleting legacy credentials when deleting `Organization` CRs.
+
 ## [0.5.0] - 2020-09-24
 
 ### Changed
