@@ -9,6 +9,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	companyclient "github.com/giantswarm/companyd-client-go"
+
 	"github.com/giantswarm/organization-operator/pkg/label"
 	"github.com/giantswarm/organization-operator/pkg/project"
 )
@@ -29,13 +31,15 @@ var (
 )
 
 type Config struct {
-	K8sClient k8sclient.Interface
-	Logger    micrologger.Logger
+	K8sClient       k8sclient.Interface
+	Logger          micrologger.Logger
+	LegacyOrgClient *companyclient.Client
 }
 
 type Resource struct {
-	k8sClient k8sclient.Interface
-	logger    micrologger.Logger
+	k8sClient       k8sclient.Interface
+	logger          micrologger.Logger
+	legacyOrgClient *companyclient.Client
 }
 
 func New(config Config) (*Resource, error) {
@@ -46,10 +50,14 @@ func New(config Config) (*Resource, error) {
 
 		return nil, microerror.Maskf(invalidConfigError, "%T.Logger must not be empty", config)
 	}
+	if config.LegacyOrgClient == nil {
+		return nil, microerror.Maskf(invalidConfigError, "%T.LegacyOrgClient must not be empty", config)
+	}
 
 	r := &Resource{
-		k8sClient: config.K8sClient,
-		logger:    config.Logger,
+		k8sClient:       config.K8sClient,
+		logger:          config.Logger,
+		legacyOrgClient: config.LegacyOrgClient,
 	}
 
 	return r, nil

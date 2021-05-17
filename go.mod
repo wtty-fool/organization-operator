@@ -3,7 +3,9 @@ module github.com/giantswarm/organization-operator
 go 1.14
 
 require (
+	github.com/giantswarm/api-schema v0.7.1 // indirect
 	github.com/giantswarm/apiextensions/v2 v2.6.2
+	github.com/giantswarm/companyd-client-go v0.6.1
 	github.com/giantswarm/exporterkit v0.2.1
 	github.com/giantswarm/k8sclient/v4 v4.1.0
 	github.com/giantswarm/microendpoint v0.2.0

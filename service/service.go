@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	securityv1alpha1 "github.com/giantswarm/apiextensions/v2/pkg/apis/security/v1alpha1"
+	companyclient "github.com/giantswarm/companyd-client-go"
 	"github.com/giantswarm/k8sclient/v4/pkg/k8sclient"
 	"github.com/giantswarm/k8sclient/v4/pkg/k8srestconfig"
 	"github.com/giantswarm/microendpoint/service/version"
@@ -97,12 +98,23 @@ func New(config Config) (*Service, error) {
 		}
 	}
 
+	var legacyOrgClient *companyclient.Client
+	{
+		serviceAddress := config.Viper.GetString(config.Flag.Service.LegacyOrganizations.Address)
+
+		legacyOrgClient, err = companyclient.Dial(serviceAddress)
+		if err != nil {
+			return nil, microerror.Mask(err)
+		}
+	}
+
 	var orgController *controller.Organization
 	{
 
 		c := controller.OrganizationConfig{
-			K8sClient: k8sClient,
-			Logger:    config.Logger,
+			K8sClient:       k8sClient,
+			Logger:          config.Logger,
+			LegacyOrgClient: legacyOrgClient,
 		}
 
 		orgController, err = controller.NewOrganization(c)
