@@ -8,6 +8,7 @@ require (
 	github.com/giantswarm/companyd-client-go v0.6.1
 	github.com/giantswarm/exporterkit v0.2.1
 	github.com/giantswarm/k8sclient/v4 v4.1.0
+	github.com/giantswarm/k8smetadata v0.3.0
 	github.com/giantswarm/microendpoint v0.2.0
 	github.com/giantswarm/microerror v0.3.0
 	github.com/giantswarm/microkit v0.2.2

@@ -2,17 +2,8 @@ package key
 
 import (
 	securityv1alpha1 "github.com/giantswarm/apiextensions/v2/pkg/apis/security/v1alpha1"
+	"github.com/giantswarm/k8smetadata/pkg/annotation"
 	"github.com/giantswarm/microerror"
-)
-
-const (
-	// uiName is used to identify organizations
-	// with names that don't adhere to the DNS standard.
-	//
-	// While the org CR name would be converted to the
-	// DNS standard, this annotation is used to determine
-	// the companyd counterpart of the org CR.
-	uiName = "ui.giantswarm.io/original-organization-name"
 )
 
 func ToOrganization(v interface{}) (securityv1alpha1.Organization, error) {
@@ -32,7 +23,7 @@ func ToOrganization(v interface{}) (securityv1alpha1.Organization, error) {
 
 func LegacyOrganizationName(cr *securityv1alpha1.Organization) string {
 	if cr.GetAnnotations() != nil {
-		name := cr.GetAnnotations()[uiName]
+		name := cr.GetAnnotations()[annotation.UIOriginalOrganizationName]
 		if len(name) > 0 {
 			return name
 		}
