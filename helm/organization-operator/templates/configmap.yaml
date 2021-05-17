@@ -21,3 +21,5 @@ data:
           caFile: ''
           crtFile: ''
           keyFile: ''
+      legacyorganizations:
+        address: 'http://companyd:8000'
