@@ -34,6 +34,9 @@ func (r *Resource) EnsureDeleted(ctx context.Context, obj interface{}) error {
 		}
 	}
 
+	// If we allow deleting the organization without deleting
+	// the credentials, then someone could create another
+	// organization with the same name and re-use the credentials.
 	if len(legacyCredentials) > 0 {
 		r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("found legacy credentials for organization %#q", legacyOrgName))
 
