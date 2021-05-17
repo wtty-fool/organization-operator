@@ -18,11 +18,15 @@ func (r *Resource) EnsureDeleted(ctx context.Context, obj interface{}) error {
 	}
 
 	legacyOrgName := key.LegacyOrganizationName(&org)
+	r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("deleting legacy organization namespace %#q", legacyOrgName))
+
 	err = r.legacyOrgClient.DeleteCompany(legacyOrgName)
 	if companyclient.IsErrCompanyNotFound(err) {
 		r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("legacy organization %#q does not exist", legacyOrgName))
 	} else if err != nil {
 		return microerror.Mask(err)
+	} else {
+		r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("deleted legacy organization %#q", legacyOrgName))
 	}
 
 	orgNamespace := newOrganizationNamespace(org.Name)
