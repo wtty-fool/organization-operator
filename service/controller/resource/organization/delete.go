@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	companyclient "github.com/giantswarm/companyd-client-go"
 	"github.com/giantswarm/microerror"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
@@ -13,6 +14,14 @@ import (
 func (r *Resource) EnsureDeleted(ctx context.Context, obj interface{}) error {
 	org, err := key.ToOrganization(obj)
 	if err != nil {
+		return microerror.Mask(err)
+	}
+
+	legacyOrgName := key.LegacyOrganizationName(&org)
+	err = r.legacyOrgClient.DeleteCompany(legacyOrgName)
+	if companyclient.IsErrCompanyNotFound(err) {
+		r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("legacy organization %#q does not exist", legacyOrgName))
+	} else if err != nil {
 		return microerror.Mask(err)
 	}
 
