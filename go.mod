@@ -20,7 +20,7 @@ require (
 	gopkg.in/resty.v1 v1.12.0
 	k8s.io/api v0.18.19
 	k8s.io/apimachinery v0.18.19
-	k8s.io/client-go v0.18.18
+	k8s.io/client-go v0.18.19
 )
 
 replace (
