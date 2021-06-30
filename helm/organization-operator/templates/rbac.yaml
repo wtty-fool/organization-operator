@@ -55,6 +55,7 @@ rules:
       - "security.giantswarm.io"
     resources:
       - organizations
+      - organizations/status
     verbs:
       - "*"
 ---

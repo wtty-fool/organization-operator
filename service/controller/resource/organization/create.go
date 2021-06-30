@@ -31,7 +31,6 @@ func (r *Resource) EnsureCreated(ctx context.Context, obj interface{}) error {
 	err = r.k8sClient.CtrlClient().Create(ctx, orgNamespace)
 	if apierrors.IsAlreadyExists(err) {
 		r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("organization namespace %#q already exists", orgNamespace.Name))
-		return nil
 	} else if err != nil {
 		return microerror.Mask(err)
 	}
