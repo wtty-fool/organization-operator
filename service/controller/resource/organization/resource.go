@@ -9,9 +9,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	companyclient "github.com/giantswarm/companyd-client-go"
-	credentialclient "github.com/giantswarm/credentiald/v2/client"
-
 	"github.com/giantswarm/organization-operator/pkg/label"
 	"github.com/giantswarm/organization-operator/pkg/project"
 )
@@ -34,15 +31,15 @@ var (
 type Config struct {
 	K8sClient              k8sclient.Interface
 	Logger                 micrologger.Logger
-	LegacyOrgClient        *companyclient.Client
-	LegacyCredentialClient *credentialclient.Client
+	LegacyOrgClient        CompanydClient
+	LegacyCredentialClient CredentialdClient
 }
 
 type Resource struct {
 	k8sClient              k8sclient.Interface
 	logger                 micrologger.Logger
-	legacyOrgClient        *companyclient.Client
-	legacyCredentialClient *credentialclient.Client
+	legacyOrgClient        CompanydClient
+	legacyCredentialClient CredentialdClient
 }
 
 func New(config Config) (*Resource, error) {

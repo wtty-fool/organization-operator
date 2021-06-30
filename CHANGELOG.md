@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Introduce local interfaces to make easier to test the organization handler.
 - Save created namespace in Organization status field.
 
 ### Changed
