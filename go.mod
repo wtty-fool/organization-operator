@@ -3,8 +3,8 @@ module github.com/giantswarm/organization-operator
 go 1.14
 
 require (
-	github.com/giantswarm/apiextensions/v3 v3.23.0
 	github.com/giantswarm/api-schema v0.7.1 // indirect
+	github.com/giantswarm/apiextensions/v3 v3.26.0
 	github.com/giantswarm/companyd-client-go v0.6.1
 	github.com/giantswarm/credentiald/v2 v2.0.1
 	github.com/giantswarm/exporterkit v0.2.1
@@ -19,9 +19,9 @@ require (
 	github.com/spf13/viper v1.7.1
 	gopkg.in/resty.v1 v1.12.0
 	k8s.io/api v0.18.19
+	k8s.io/apiextensions-apiserver v0.18.19
 	k8s.io/apimachinery v0.18.19
 	k8s.io/client-go v0.18.19
-	k8s.io/apiextensions-apiserver v0.18.19
 	sigs.k8s.io/controller-runtime v0.6.4
 )
 
