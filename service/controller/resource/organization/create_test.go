@@ -6,11 +6,12 @@ import (
 
 	"github.com/giantswarm/apiextensions/v3/pkg/apis/security/v1alpha1"
 	"github.com/giantswarm/micrologger/microloggertest"
-	mock_organization "github.com/giantswarm/organization-operator/service/controller/resource/organization/mock_spec"
 	"github.com/golang/mock/gomock"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	mock_organization "github.com/giantswarm/organization-operator/service/controller/resource/organization/mock_spec"
 
 	"github.com/giantswarm/organization-operator/service/unittest"
 )
@@ -46,9 +47,9 @@ func Test_NamespaceIsCreated(t *testing.T) {
 	credentialdClientMock := mock_organization.NewMockCredentialdClient(ctrl)
 
 	config := Config{
-		K8sClient: k8sClient,
-		Logger:    logger,
-		LegacyOrgClient: companydClientMock,
+		K8sClient:              k8sClient,
+		Logger:                 logger,
+		LegacyOrgClient:        companydClientMock,
 		LegacyCredentialClient: credentialdClientMock,
 	}
 	organizationHandler, err := New(config)
