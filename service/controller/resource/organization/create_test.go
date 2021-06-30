@@ -6,6 +6,8 @@ import (
 
 	"github.com/giantswarm/apiextensions/v3/pkg/apis/security/v1alpha1"
 	"github.com/giantswarm/micrologger/microloggertest"
+	mock_organization "github.com/giantswarm/organization-operator/service/controller/resource/organization/mock_spec"
+	"github.com/golang/mock/gomock"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -15,6 +17,8 @@ import (
 
 func Test_NamespaceIsCreated(t *testing.T) {
 	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 	logger := microloggertest.New()
 	k8sClient := unittest.FakeK8sClient()
 	ctrClient := k8sClient.CtrlClient()
@@ -33,9 +37,19 @@ func Test_NamespaceIsCreated(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	companydClientMock := mock_organization.NewMockCompanydClient(ctrl)
+	companydClientMock.
+		EXPECT().
+		CreateCompany(org.Name, gomock.Any()).
+		Return(nil)
+
+	credentialdClientMock := mock_organization.NewMockCredentialdClient(ctrl)
+
 	config := Config{
 		K8sClient: k8sClient,
 		Logger:    logger,
+		LegacyOrgClient: companydClientMock,
+		LegacyCredentialClient: credentialdClientMock,
 	}
 	organizationHandler, err := New(config)
 	if err != nil {
