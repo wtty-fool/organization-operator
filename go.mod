@@ -4,8 +4,12 @@ go 1.14
 
 require (
 	github.com/giantswarm/apiextensions/v3 v3.23.0
+	github.com/giantswarm/api-schema v0.7.1 // indirect
+	github.com/giantswarm/companyd-client-go v0.6.1
+	github.com/giantswarm/credentiald/v2 v2.0.1
 	github.com/giantswarm/exporterkit v0.2.1
 	github.com/giantswarm/k8sclient/v5 v5.11.0
+	github.com/giantswarm/k8smetadata v0.3.0
 	github.com/giantswarm/microendpoint v0.2.0
 	github.com/giantswarm/microerror v0.3.0
 	github.com/giantswarm/microkit v0.2.2
@@ -13,10 +17,11 @@ require (
 	github.com/giantswarm/operatorkit/v4 v4.3.1
 	github.com/prometheus/client_golang v1.10.0
 	github.com/spf13/viper v1.7.1
-	k8s.io/api v0.18.9
-	k8s.io/apiextensions-apiserver v0.18.9
-	k8s.io/apimachinery v0.18.9
-	k8s.io/client-go v0.18.9
+	gopkg.in/resty.v1 v1.12.0
+	k8s.io/api v0.18.19
+	k8s.io/apimachinery v0.18.19
+	k8s.io/client-go v0.18.19
+	k8s.io/apiextensions-apiserver v0.18.19
 	sigs.k8s.io/controller-runtime v0.6.4
 )
 

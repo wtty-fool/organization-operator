@@ -17,6 +17,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated `operatorkit` dependency to v4.
 - Updated `k8sclient` dependency to v5.
 
+## [0.8.0] - 2021-05-24
+
+### Changed
+
+- Update `architect-orb` to v3.0.0.
+
+## [0.7.0] - 2021-05-21
+
+### Changed
+
+- Set config version in `Chart.yaml`.
+
+## [0.6.0] - 2021-05-17
+
+### Added
+
+- Also delete legacy `companyd` organizations when deleting `Organization` CRs.
+- Prevent deleting legacy credentials when deleting `Organization` CRs.
+
 ## [0.5.0] - 2020-09-24
 
 ### Changed
@@ -55,7 +74,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/giantswarm/organization-operator/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/giantswarm/organization-operator/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/giantswarm/organization-operator/compare/v0.7.0...v0.8.0
+[0.7.0]: https://github.com/giantswarm/organization-operator/compare/v0.6.0...v0.7.0
+[0.6.0]: https://github.com/giantswarm/organization-operator/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/giantswarm/organization-operator/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/giantswarm/organization-operator/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/giantswarm/organization-operator/compare/v0.2.0...v0.3.0
