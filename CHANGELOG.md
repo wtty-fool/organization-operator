@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Introduce local interfaces to make easier to test the organization handler.
+- Save created namespace in Organization status field.
+
+### Changed
+
+- Updated `apiextensions` dependency to v3.
+- Updated `operatorkit` dependency to v5.
+- Updated `k8sclient` dependency to v5.
+- Always try to create organization in `companyd` even when organization namespace already exists.
 
 ## [0.8.0] - 2021-05-24
 

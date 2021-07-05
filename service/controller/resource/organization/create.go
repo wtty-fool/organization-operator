@@ -28,15 +28,20 @@ func (r *Resource) EnsureCreated(ctx context.Context, obj interface{}) error {
 	orgNamespace := newOrganizationNamespace(org.Name)
 	r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("creating organization namespace %#q", orgNamespace.Name))
 
-	err = r.k8sClient.CtrlClient().Create(context.Background(), orgNamespace)
+	err = r.k8sClient.CtrlClient().Create(ctx, orgNamespace)
 	if apierrors.IsAlreadyExists(err) {
 		r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("organization namespace %#q already exists", orgNamespace.Name))
-		return nil
 	} else if err != nil {
 		return microerror.Mask(err)
 	}
 
 	r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("created organization namespace %#q", orgNamespace.Name))
+
+	org.Status.Namespace = orgNamespace.Name
+	err = r.k8sClient.CtrlClient().Status().Update(ctx, &org)
+	if err != nil {
+		return microerror.Mask(err)
+	}
 
 	legacyOrgName := key.LegacyOrganizationName(&org)
 	r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("creating legacy organization %#q", legacyOrgName))
