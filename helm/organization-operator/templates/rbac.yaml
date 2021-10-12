@@ -14,6 +14,13 @@ rules:
   - apiGroups:
       - ""
     resources:
+      - secrets
+    verbs:
+      - "list"
+      - "get"
+  - apiGroups:
+      - ""
+    resources:
       - configmaps
       - namespaces
     verbs:
