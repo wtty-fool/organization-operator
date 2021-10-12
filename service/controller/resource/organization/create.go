@@ -72,6 +72,7 @@ func (r *Resource) EnsureCreated(ctx context.Context, obj interface{}) error {
 }
 
 func (r *Resource) ensureOrganizationHasSubscriptionIdAnnotation(ctx context.Context, organization v1alpha1.Organization) error {
+	r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("ensuring organization %q has subscriptionid annotation", organization.Name))
 	// Retrieve secret related to this organization.
 	secret, err := findSecret(ctx, r.k8sClient.CtrlClient(), organization.Name)
 	if IsSecretNotFound(err) {
@@ -84,11 +85,14 @@ func (r *Resource) ensureOrganizationHasSubscriptionIdAnnotation(ctx context.Con
 
 	// The subscription id field is missing in non azure installations so it's ok.
 	if subscription, ok := secret.Data["azure.azureoperator.subscriptionid"]; ok {
+		r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("setting subscriptionid annotation to %q for organization %q", string(subscription), organization.Name))
 		organization.Annotations["subscription"] = string(subscription)
 		err = r.k8sClient.CtrlClient().Update(ctx, &organization)
 		if err != nil {
 			return microerror.Mask(err)
 		}
+	} else {
+		r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("azure.azureoperator.subscriptionid field not found in secret %q", secret.Name))
 	}
 
 	return nil
