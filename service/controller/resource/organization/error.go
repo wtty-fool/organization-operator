@@ -4,8 +4,13 @@ import (
 	"github.com/giantswarm/microerror"
 )
 
-var executionFailedError = &microerror.Error{
-	Kind: "executionFailedError",
+var secretNotFoundError = &microerror.Error{
+	Kind: "secretNotFoundError",
+}
+
+// IsSecretNotFound asserts secretNotFoundError.
+func IsSecretNotFound(err error) bool {
+	return microerror.Cause(err) == secretNotFoundError
 }
 
 var invalidConfigError = &microerror.Error{
