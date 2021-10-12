@@ -88,7 +88,7 @@ func (r *Resource) ensureOrganizationHasSubscriptionIdAnnotation(ctx context.Con
 	if subscription, ok := secret.Data["azure.azureoperator.subscriptionid"]; ok {
 		r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("setting subscriptionid annotation to %q for organization %q", string(subscription), organization.Name))
 		patch := []byte(fmt.Sprintf(`{"metadata":{"annotations":{"subscription": "%s"}}}`, string(subscription)))
-		err = r.k8sClient.CtrlClient().Patch(ctx, &organization, ctrl.RawPatch(types.StrategicMergePatchType, patch))
+		err = r.k8sClient.CtrlClient().Patch(ctx, &organization, ctrl.RawPatch(types.MergePatchType, patch))
 		if err != nil {
 			return microerror.Mask(err)
 		}
