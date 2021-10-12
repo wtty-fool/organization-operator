@@ -103,19 +103,18 @@ func findSecret(ctx context.Context, client ctrl.Client, orgName string) (*corev
 		return nil, microerror.Mask(err)
 	}
 
-	if len(secrets.Items) == 1 {
+	if len(secrets.Items) > 0 {
 		return &secrets.Items[0], nil
-	} else if len(secrets.Items) == 0 {
-		secret := &corev1.Secret{}
+	}
+	secret := &corev1.Secret{}
 
-		// Organization-specific secret not found, use secret named "credential-default".
-		err := client.Get(ctx, ctrl.ObjectKey{Namespace: "giantswarm", Name: "credential-default"}, secret)
-		if err != nil {
-			return nil, microerror.Mask(err)
-		}
-
-		return secret, nil
+	// Organization-specific secret not found, use secret named "credential-default".
+	err = client.Get(ctx, ctrl.ObjectKey{Namespace: "giantswarm", Name: "credential-default"}, secret)
+	if apierrors.IsNotFound(err) {
+		return nil, microerror.Maskf(secretNotFoundError, "Unable to find secret for organization %s", orgName)
+	} else if err != nil {
+		return nil, microerror.Mask(err)
 	}
 
-	return nil, microerror.Maskf(secretNotFoundError, "Unable to find secret for organization %s", orgName)
+	return secret, nil
 }
