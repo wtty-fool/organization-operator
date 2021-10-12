@@ -11,6 +11,7 @@ import (
 	"github.com/giantswarm/microerror"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/giantswarm/organization-operator/service/controller/key"
@@ -86,8 +87,8 @@ func (r *Resource) ensureOrganizationHasSubscriptionIdAnnotation(ctx context.Con
 	// The subscription id field is missing in non azure installations so it's ok.
 	if subscription, ok := secret.Data["azure.azureoperator.subscriptionid"]; ok {
 		r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("setting subscriptionid annotation to %q for organization %q", string(subscription), organization.Name))
-		organization.Annotations["subscription"] = string(subscription)
-		err = r.k8sClient.CtrlClient().Update(ctx, &organization)
+		patch := []byte(fmt.Sprintf(`{"metadata":{"annotations":{"subscription": "%s"}}}`, string(subscription)))
+		err = r.k8sClient.CtrlClient().Patch(ctx, &organization, ctrl.RawPatch(types.StrategicMergePatchType, patch))
 		if err != nil {
 			return microerror.Mask(err)
 		}
