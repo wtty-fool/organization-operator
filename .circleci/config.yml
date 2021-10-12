@@ -28,6 +28,19 @@ workflows:
 
       - architect/push-to-docker:
           context: "architect"
+          name: push-organization-operator-to-dockerhub
+          image: "docker.io/giantswarm/organization-operator"
+          username_envar: "DOCKER_USERNAME"
+          password_envar: "DOCKER_PASSWORD"
+          requires:
+            - go-build
+          # Needed to trigger job also on git tag.
+          filters:
+            tags:
+              only: /^v.*/
+
+      - architect/push-to-docker:
+          context: "architect"
           name: push-organization-operator-to-aliyun
           image: "registry-intl.cn-shanghai.aliyuncs.com/giantswarm/organization-operator"
           username_envar: "ALIYUN_USERNAME"
