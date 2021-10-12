@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Ensure `Organization` CR in Azure MCs have the `subscriptionid` annotation set.
 
+### Changed
+
+- Use `Patch` to save `Namespace` in `Status` to avoid write conflicts.
+
 ## [0.9.0] - 2021-07-05
 
 ### Added
