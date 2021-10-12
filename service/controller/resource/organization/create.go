@@ -29,6 +29,11 @@ func (r *Resource) EnsureCreated(ctx context.Context, obj interface{}) error {
 		}
 	}
 
+	err = r.ensureOrganizationHasSubscriptionIdAnnotation(ctx, org)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+
 	orgNamespace := newOrganizationNamespace(org.Name)
 	r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("creating organization namespace %#q", orgNamespace.Name))
 
