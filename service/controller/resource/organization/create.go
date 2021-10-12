@@ -85,7 +85,7 @@ func (r *Resource) ensureOrganizationHasSubscriptionIdAnnotation(ctx context.Con
 	}
 
 	// The subscription id field is missing in non azure installations so it's ok.
-	if subscription, ok := secret.Data["azure.azureoperator.subscriptionid"]; ok {
+	if subscription, ok := secret.Data["azure.azureoperator.subscriptionid"]; ok && len(subscription) > 0 {
 		r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("setting subscriptionid annotation to %q for organization %q", string(subscription), organization.Name))
 		patch := []byte(fmt.Sprintf(`{"metadata":{"annotations":{"subscription": "%s"}}}`, string(subscription)))
 		err = r.k8sClient.CtrlClient().Patch(ctx, &organization, ctrl.RawPatch(types.MergePatchType, patch))
@@ -93,7 +93,7 @@ func (r *Resource) ensureOrganizationHasSubscriptionIdAnnotation(ctx context.Con
 			return microerror.Mask(err)
 		}
 	} else {
-		r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("azure.azureoperator.subscriptionid field not found in secret %q", secret.Name))
+		r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("azure.azureoperator.subscriptionid field not found or empty in secret %q", secret.Name))
 	}
 
 	return nil
