@@ -5,9 +5,13 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/giantswarm/apiextensions/v3/pkg/apis/security/v1alpha1"
+	"github.com/giantswarm/apiextensions/v3/pkg/label"
 	companyclient "github.com/giantswarm/companyd-client-go"
 	"github.com/giantswarm/microerror"
+	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	ctrl "sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/giantswarm/organization-operator/service/controller/key"
 )
@@ -60,4 +64,48 @@ func (r *Resource) EnsureCreated(ctx context.Context, obj interface{}) error {
 	r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("created legacy organization %#q", legacyOrgName))
 
 	return nil
+}
+
+func (r *Resource) ensureOrganizationHasSubscriptionIdAnnotation(ctx context.Context, organization v1alpha1.Organization) error {
+	// Retrieve secret related to this organization.
+	secret, err := findSecret(ctx, r.k8sClient.CtrlClient(), organization.Name)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+
+	if subscription, ok := secret.Data["azure.azureoperator.subscriptionid"]; ok {
+		organization.Annotations["subscription"] = string(subscription)
+		err = r.k8sClient.CtrlClient().Update(ctx, &organization)
+		if err != nil {
+			return microerror.Mask(err)
+		}
+	}
+
+	return nil
+}
+
+func findSecret(ctx context.Context, client ctrl.Client, orgName string) (*corev1.Secret, error) {
+	// Look for a secret with labels "app: credentiald" and "giantswarm.io/organization: org"
+	secrets := &corev1.SecretList{}
+
+	err := client.List(ctx, secrets, ctrl.MatchingLabels{"app": "credentiald", label.Organization: orgName})
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+
+	if len(secrets.Items) == 1 {
+		return &secrets.Items[0], nil
+	} else if len(secrets.Items) == 0 {
+		secret := &corev1.Secret{}
+
+		// Organization-specific secret not found, use secret named "credential-default".
+		err := client.Get(ctx, ctrl.ObjectKey{Namespace: "giantswarm", Name: "credential-default"}, secret)
+		if err != nil {
+			return nil, microerror.Mask(err)
+		}
+
+		return secret, nil
+	}
+
+	return nil, microerror.Maskf(executionFailedError, "Unable to find secret for organization %s", orgName)
 }
