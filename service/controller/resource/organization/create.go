@@ -64,7 +64,8 @@ func (r *Resource) EnsureCreated(ctx context.Context, obj interface{}) error {
 		r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("legacy organization %#q already exists", legacyOrgName))
 		return nil
 	} else if err != nil {
-		return microerror.Mask(err)
+		r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("could not create legacy organization %#q: %#q", legacyOrgName, err))
+		return nil
 	}
 
 	r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("created legacy organization %#q", legacyOrgName))

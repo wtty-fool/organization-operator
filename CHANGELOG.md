@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Don't return an error in case creation of legacy organization fails.
+
 ## [0.10.0] - 2021-10-12
 
 ### Added
