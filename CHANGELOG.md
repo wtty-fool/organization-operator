@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.1] - 2021-10-26
+
 ### Changed
 
 - Don't return an error in case creation of legacy organization fails.
@@ -93,7 +95,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/giantswarm/organization-operator/compare/v0.10.0...HEAD
+[Unreleased]: https://github.com/giantswarm/organization-operator/compare/v0.10.1...HEAD
+[0.10.1]: https://github.com/giantswarm/organization-operator/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/giantswarm/organization-operator/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/giantswarm/organization-operator/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/giantswarm/organization-operator/compare/v0.7.0...v0.8.0
