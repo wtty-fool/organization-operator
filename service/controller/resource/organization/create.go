@@ -48,7 +48,7 @@ func (r *Resource) EnsureCreated(ctx context.Context, obj interface{}) error {
 	r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("created organization namespace %#q", orgNamespace.Name))
 
 	patch := []byte(fmt.Sprintf(`{"status":{"namespace": "%s"}}`, orgNamespace.Name))
-	err = r.k8sClient.CtrlClient().Patch(ctx, &org, ctrl.RawPatch(types.MergePatchType, patch))
+	err = r.k8sClient.CtrlClient().Status().Patch(ctx, &org, ctrl.RawPatch(types.MergePatchType, patch))
 	if err != nil {
 		return microerror.Mask(err)
 	}
