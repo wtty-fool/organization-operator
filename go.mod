@@ -4,7 +4,7 @@ go 1.14
 
 require (
 	github.com/giantswarm/api-schema v0.7.1 // indirect
-	github.com/giantswarm/apiextensions/v3 v3.35.0
+	github.com/giantswarm/apiextensions/v3 v3.36.0
 	github.com/giantswarm/companyd-client-go v0.6.1
 	github.com/giantswarm/credentiald/v2 v2.17.0
 	github.com/giantswarm/exporterkit v0.2.1
