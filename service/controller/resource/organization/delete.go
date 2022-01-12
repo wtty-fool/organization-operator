@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	companyclient "github.com/giantswarm/companyd-client-go"
 	legacyCredentialLister "github.com/giantswarm/credentiald/v2/service/lister"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/operatorkit/v5/pkg/controller/context/finalizerskeptcontext"
@@ -48,10 +47,8 @@ func (r *Resource) EnsureDeleted(ctx context.Context, obj interface{}) error {
 	r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("deleting legacy organization %#q", legacyOrgName))
 
 	err = r.legacyOrgClient.DeleteCompany(legacyOrgName)
-	if companyclient.IsErrCompanyNotFound(err) {
-		r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("legacy organization %#q does not exist", legacyOrgName))
-	} else if err != nil {
-		return microerror.Mask(err)
+	if err != nil {
+		r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("legacy organization %#q does not exist or was not found. %s", legacyOrgName, err))
 	} else {
 		r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("deleted legacy organization %#q", legacyOrgName))
 	}
