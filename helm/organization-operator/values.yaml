@@ -1,3 +1,4 @@
+baseDomain: ""
 image:
   name: "giantswarm/organization-operator"
   tag: "[[ .Version ]]"

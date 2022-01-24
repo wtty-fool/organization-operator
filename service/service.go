@@ -129,6 +129,7 @@ func New(config Config) (*Service, error) {
 	{
 
 		c := controller.OrganizationConfig{
+			BaseDomain:             config.Viper.GetString(config.Flag.Service.BaseDomain),
 			K8sClient:              k8sClient,
 			Logger:                 config.Logger,
 			LegacyOrgClient:        legacyOrgClient,

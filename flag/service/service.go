@@ -9,6 +9,7 @@ import (
 
 // Service is an intermediate data structure for command line configuration flags.
 type Service struct {
+	BaseDomain          string
 	Kubernetes          kubernetes.Kubernetes
 	LegacyOrganizations legacyorganizations.LegacyOrganizations
 	LegacyCredentials   legacycredentials.LegacyCredentials
