@@ -19,11 +19,11 @@ require (
 	github.com/prometheus/client_golang v1.12.0
 	github.com/spf13/viper v1.10.1
 	gopkg.in/resty.v1 v1.12.0
-	k8s.io/api v0.18.19
-	k8s.io/apiextensions-apiserver v0.18.19
-	k8s.io/apimachinery v0.18.19
-	k8s.io/client-go v0.18.19
-	sigs.k8s.io/controller-runtime v0.6.4
+	k8s.io/api v0.20.15
+	k8s.io/apiextensions-apiserver v0.20.15
+	k8s.io/apimachinery v0.20.15
+	k8s.io/client-go v0.20.15
+	sigs.k8s.io/controller-runtime v0.6.5
 )
 
 replace (
