@@ -31,7 +31,7 @@ func (r *Resource) GetDesiredState(ctx context.Context, obj interface{}) ([]*cor
 
 	configMapSpecs := []configMapSpec{
 		{
-			Name:      fmt.Sprintf("organization-values"),
+			Name:      "organization-values",
 			Namespace: cr.GetNamespace(),
 			Values: map[string]interface{}{
 				"baseDomain": r.baseDomain,
