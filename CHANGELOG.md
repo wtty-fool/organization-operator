@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Drop dependency on apiextensions by moving Organization API into this repository.
+- Update k8sclient and operatorkit to v6.
+
 ## [0.10.3] - 2022-01-12
 
 ### Changed

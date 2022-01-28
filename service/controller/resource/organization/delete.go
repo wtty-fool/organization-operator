@@ -6,7 +6,7 @@ import (
 
 	legacyCredentialLister "github.com/giantswarm/credentiald/v2/service/lister"
 	"github.com/giantswarm/microerror"
-	"github.com/giantswarm/operatorkit/v5/pkg/controller/context/finalizerskeptcontext"
+	"github.com/giantswarm/operatorkit/v6/pkg/controller/context/finalizerskeptcontext"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
 	"github.com/giantswarm/organization-operator/service/controller/key"

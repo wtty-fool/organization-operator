@@ -1,12 +1,11 @@
 package unittest
 
 import (
-	securityv1alpha1 "github.com/giantswarm/apiextensions/v3/pkg/apis/security/v1alpha1"
-	"github.com/giantswarm/apiextensions/v3/pkg/clientset/versioned"
-	"github.com/giantswarm/k8sclient/v5/pkg/k8sclient"
-	"github.com/giantswarm/k8sclient/v5/pkg/k8scrdclient"
+	"github.com/giantswarm/k8sclient/v6/pkg/k8sclient"
+	"github.com/giantswarm/k8sclient/v6/pkg/k8scrdclient"
+	securityv1alpha1 "github.com/giantswarm/organization-operator/api/v1alpha1"
 	v1 "k8s.io/api/core/v1"
-	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
+	"k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
@@ -56,11 +55,7 @@ func (f *fakeK8sClient) DynClient() dynamic.Interface {
 	return nil
 }
 
-func (f *fakeK8sClient) ExtClient() apiextensionsclient.Interface {
-	return nil
-}
-
-func (f *fakeK8sClient) G8sClient() versioned.Interface {
+func (f *fakeK8sClient) ExtClient() clientset.Interface {
 	return nil
 }
 

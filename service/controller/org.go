@@ -1,21 +1,21 @@
 package controller
 
 import (
-	securityv1alpha1 "github.com/giantswarm/apiextensions/v3/pkg/apis/security/v1alpha1"
-	"github.com/giantswarm/k8sclient/v5/pkg/k8sclient"
+	"github.com/giantswarm/k8sclient/v6/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
-	"github.com/giantswarm/operatorkit/v5/pkg/controller"
-	"github.com/giantswarm/operatorkit/v5/pkg/resource"
-	"github.com/giantswarm/operatorkit/v5/pkg/resource/wrapper/metricsresource"
-	"github.com/giantswarm/operatorkit/v5/pkg/resource/wrapper/retryresource"
-	"k8s.io/apimachinery/pkg/runtime"
+	"github.com/giantswarm/operatorkit/v6/pkg/controller"
+	"github.com/giantswarm/operatorkit/v6/pkg/resource"
+	"github.com/giantswarm/operatorkit/v6/pkg/resource/wrapper/metricsresource"
+	"github.com/giantswarm/operatorkit/v6/pkg/resource/wrapper/retryresource"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	companyclient "github.com/giantswarm/companyd-client-go"
 	credentialclient "github.com/giantswarm/credentiald/v2/client"
 
+	securityv1alpha1 "github.com/giantswarm/organization-operator/api/v1alpha1"
 	"github.com/giantswarm/organization-operator/pkg/project"
-	organization "github.com/giantswarm/organization-operator/service/controller/resource/organization"
+	"github.com/giantswarm/organization-operator/service/controller/resource/organization"
 )
 
 type OrganizationConfig struct {
@@ -42,7 +42,7 @@ func NewOrganization(config OrganizationConfig) (*Organization, error) {
 		c := controller.Config{
 			K8sClient: config.K8sClient,
 			Logger:    config.Logger,
-			NewRuntimeObjectFunc: func() runtime.Object {
+			NewRuntimeObjectFunc: func() client.Object {
 				return new(securityv1alpha1.Organization)
 			},
 			Resources: resources,
