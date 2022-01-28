@@ -3,7 +3,6 @@ package unittest
 import (
 	"github.com/giantswarm/k8sclient/v6/pkg/k8sclient"
 	"github.com/giantswarm/k8sclient/v6/pkg/k8scrdclient"
-	securityv1alpha1 "github.com/giantswarm/organization-operator/api/v1alpha1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -12,6 +11,8 @@ import (
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake" // nolint:staticcheck
+
+	securityv1alpha1 "github.com/giantswarm/organization-operator/api/v1alpha1"
 )
 
 type fakeK8sClient struct {

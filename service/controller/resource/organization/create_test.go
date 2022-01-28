@@ -5,14 +5,13 @@ import (
 	"testing"
 
 	"github.com/giantswarm/micrologger/microloggertest"
-	"github.com/giantswarm/organization-operator/api/v1alpha1"
 	"github.com/golang/mock/gomock"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/giantswarm/organization-operator/api/v1alpha1"
 	mock_organization "github.com/giantswarm/organization-operator/service/controller/resource/organization/mock_spec"
-
 	"github.com/giantswarm/organization-operator/service/unittest"
 )
 

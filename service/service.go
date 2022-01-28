@@ -14,11 +14,11 @@ import (
 	"github.com/giantswarm/microendpoint/service/version"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
-	securityv1alpha1 "github.com/giantswarm/organization-operator/api/v1alpha1"
 	"github.com/spf13/viper"
 	"gopkg.in/resty.v1"
 	"k8s.io/client-go/rest"
 
+	securityv1alpha1 "github.com/giantswarm/organization-operator/api/v1alpha1"
 	"github.com/giantswarm/organization-operator/flag"
 	"github.com/giantswarm/organization-operator/pkg/project"
 	"github.com/giantswarm/organization-operator/service/collector"

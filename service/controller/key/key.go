@@ -3,6 +3,7 @@ package key
 import (
 	"github.com/giantswarm/k8smetadata/pkg/annotation"
 	"github.com/giantswarm/microerror"
+
 	securityv1alpha1 "github.com/giantswarm/organization-operator/api/v1alpha1"
 )
 
