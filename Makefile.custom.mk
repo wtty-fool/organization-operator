@@ -2,27 +2,23 @@
 API_DIR := api
 CRD_DIR := config/crd
 SCRIPTS_DIR := hack
-TOOLS_DIR := $(SCRIPTS_DIR)/tools
-TOOLS_BIN_DIR := $(abspath $(TOOLS_DIR)/bin)
+GOBIN_DIR := $(abspath hack/bin)
+CONTROLLER_GEN := $(abspath $(GOBIN_DIR)/controller-gen)
 
-# Binaries.
-# Need to use abspath so we can invoke these from subdirectories
-CONTROLLER_GEN := $(abspath $(TOOLS_BIN_DIR)/controller-gen)
-
+# Colors
 BUILD_COLOR = ""
 GEN_COLOR = ""
 NO_COLOR = ""
-
 ifneq (, $(shell command -v tput))
 ifeq ($(shell test `tput colors` -ge 8 && echo "yes"), yes)
-BUILD_COLOR = \033[0;34m
-GEN_COLOR = \033[0;32m
-NO_COLOR = \033[0m
+BUILD_COLOR=$(shell echo -e "\033[0;34m")
+GEN_COLOR=$(shell echo -e "\033[0;32m")
+NO_COLOR=$(shell echo -e "\033[0m")
 endif
 endif
 
+# Inputs
 DEEPCOPY_BASE = zz_generated.deepcopy
-MODULE = $(shell go list -m)
 BOILERPLATE = $(SCRIPTS_DIR)/boilerplate.go.txt
 YEAR = $(shell date +'%Y')
 
@@ -30,10 +26,9 @@ DEEPCOPY_FILES := $(shell find $(API_DIR) -name $(DEEPCOPY_BASE).go)
 
 all: generate
 
-$(CONTROLLER_GEN): $(TOOLS_DIR)/controller-gen/go.mod
+$(CONTROLLER_GEN):
 	@echo "$(BUILD_COLOR)Building controller-gen$(NO_COLOR)"
-	cd $(TOOLS_DIR)/controller-gen \
- 	&& go build -tags=tools -o $(CONTROLLER_GEN) sigs.k8s.io/controller-tools/cmd/controller-gen
+	GOBIN=$(GOBIN_DIR) go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.8.0
 
 .PHONY: generate
 generate:
@@ -69,4 +64,4 @@ clean-generated:
 .PHONY: clean-tools
 clean-tools:
 	@echo "$(GEN_COLOR)Cleaning tools$(NO_COLOR)"
-	rm -rf $(TOOLS_BIN_DIR)
+	rm -rf $(GOBIN_DIR)
