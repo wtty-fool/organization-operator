@@ -4,12 +4,12 @@ go 1.14
 
 require (
 	github.com/giantswarm/api-schema v0.7.1 // indirect
-	github.com/giantswarm/apiextensions/v3 v3.39.0
+	github.com/giantswarm/apiextensions/v3 v3.40.0
 	github.com/giantswarm/companyd-client-go v0.6.1
 	github.com/giantswarm/credentiald/v2 v2.17.0
 	github.com/giantswarm/exporterkit v1.0.0
 	github.com/giantswarm/k8sclient/v5 v5.12.0
-	github.com/giantswarm/k8smetadata v0.8.0
+	github.com/giantswarm/k8smetadata v0.9.2
 	github.com/giantswarm/microendpoint v1.0.0
 	github.com/giantswarm/microerror v0.4.0
 	github.com/giantswarm/microkit v1.0.0
