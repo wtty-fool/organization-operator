@@ -11,3 +11,5 @@ project:
   commit: "[[ .SHA ]]"
 registry:
   domain: docker.io
+  pullSecret:
+    dockerConfigJSON: ""
