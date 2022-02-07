@@ -7,11 +7,10 @@ import (
 	"sync"
 	"time"
 
-	securityv1alpha1 "github.com/giantswarm/apiextensions/v3/pkg/apis/security/v1alpha1"
 	companyclient "github.com/giantswarm/companyd-client-go"
 	credentialclient "github.com/giantswarm/credentiald/v2/client"
-	"github.com/giantswarm/k8sclient/v5/pkg/k8sclient"
-	"github.com/giantswarm/k8sclient/v5/pkg/k8srestconfig"
+	"github.com/giantswarm/k8sclient/v6/pkg/k8sclient"
+	"github.com/giantswarm/k8sclient/v6/pkg/k8srestconfig"
 	"github.com/giantswarm/microendpoint/service/version"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
@@ -19,6 +18,7 @@ import (
 	"gopkg.in/resty.v1"
 	"k8s.io/client-go/rest"
 
+	securityv1alpha1 "github.com/giantswarm/organization-operator/api/v1alpha1"
 	"github.com/giantswarm/organization-operator/flag"
 	"github.com/giantswarm/organization-operator/pkg/project"
 	"github.com/giantswarm/organization-operator/service/collector"

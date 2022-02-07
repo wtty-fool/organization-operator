@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/giantswarm/apiextensions/v3/pkg/apis/security/v1alpha1"
-	"github.com/giantswarm/apiextensions/v3/pkg/label"
 	companyclient "github.com/giantswarm/companyd-client-go"
+	"github.com/giantswarm/k8smetadata/pkg/label"
 	"github.com/giantswarm/microerror"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/giantswarm/organization-operator/api/v1alpha1"
 	"github.com/giantswarm/organization-operator/service/controller/key"
 )
 
