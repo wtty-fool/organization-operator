@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Drop dependency on apiextensions by moving Organization API into this repository.
 - Update k8sclient and operatorkit to v6.
+- Require Go v1.17
 
 ### Fixed
 
