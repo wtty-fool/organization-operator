@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2022-03-25
+
 ### Changed
 
 - Drop dependency on apiextensions by moving Organization API into this repository.
@@ -117,7 +119,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/giantswarm/organization-operator/compare/v0.10.3...HEAD
+[Unreleased]: https://github.com/giantswarm/organization-operator/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/giantswarm/organization-operator/compare/v0.10.3...v1.0.0
 [0.10.3]: https://github.com/giantswarm/organization-operator/compare/v0.10.2...v0.10.3
 [0.10.2]: https://github.com/giantswarm/organization-operator/compare/v0.10.1...v0.10.2
 [0.10.1]: https://github.com/giantswarm/organization-operator/compare/v0.10.0...v0.10.1
