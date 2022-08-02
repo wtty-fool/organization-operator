@@ -106,19 +106,6 @@ workflows:
               only: /^v.*/
 
       - architect/push-to-app-collection:
-          name: push-organization-operator-to-kvm-app-collection
-          context: architect
-          app_name: "organization-operator"
-          app_collection_repo: "kvm-app-collection"
-          requires:
-            - push-organization-operator-to-control-plane-app-catalog
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v.*/
-
-      - architect/push-to-app-collection:
           name: push-organization-operator-to-openstack-app-collection
           context: architect
           app_name: "organization-operator"
