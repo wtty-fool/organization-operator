@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"testing"
+
 	"github.com/giantswarm/credentiald/v2/service/lister"
 	"github.com/giantswarm/micrologger/microloggertest"
 	"github.com/giantswarm/organization-operator/api/v1alpha1"
@@ -14,7 +16,6 @@ import (
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"testing"
 )
 
 func Test_NamespaceIsDeleted(t *testing.T) {
