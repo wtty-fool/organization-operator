@@ -29,7 +29,7 @@ func (r *Resource) EnsureDeleted(ctx context.Context, obj interface{}) error {
 		}
 		legacyCredentials, err = r.legacyCredentialClient.List(ctx, legacyCredentialRequest)
 		if err != nil {
-			return microerror.Mask(err)
+			r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("credentials for legacy organization %#q do not exist or were not found. %s", legacyOrgName, err))
 		}
 	}
 
