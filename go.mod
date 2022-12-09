@@ -106,6 +106,7 @@ replace (
 	github.com/coreos/etcd v3.3.13+incompatible => github.com/coreos/etcd v3.3.25+incompatible
 	github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.3
 	github.com/hashicorp/consul/api => github.com/hashicorp/consul/api v1.18.0
-	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.9.8
+	github.com/labstack/echo/v4 => github.com/labstack/echo/v4 v4.9.1
+	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.9.9
 	golang.org/x/text => golang.org/x/text v0.5.0
 )
