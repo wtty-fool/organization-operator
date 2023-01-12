@@ -9,8 +9,8 @@ import (
 
 	companyclient "github.com/giantswarm/companyd-client-go"
 	credentialclient "github.com/giantswarm/credentiald/v2/client"
-	"github.com/giantswarm/k8sclient/v6/pkg/k8sclient"
-	"github.com/giantswarm/k8sclient/v6/pkg/k8srestconfig"
+	"github.com/giantswarm/k8sclient/v7/pkg/k8sclient"
+	"github.com/giantswarm/k8sclient/v7/pkg/k8srestconfig"
 	"github.com/giantswarm/microendpoint/service/version"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
