@@ -7,7 +7,7 @@ require (
 	github.com/giantswarm/credentiald/v2 v2.17.0
 	github.com/giantswarm/exporterkit v1.0.0
 	github.com/giantswarm/k8sclient/v7 v7.0.1
-	github.com/giantswarm/k8smetadata v0.18.0
+	github.com/giantswarm/k8smetadata v0.19.0
 	github.com/giantswarm/microendpoint v1.0.0
 	github.com/giantswarm/microerror v0.4.0
 	github.com/giantswarm/microkit v1.0.0
