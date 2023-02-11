@@ -113,8 +113,8 @@ replace (
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.8.2
 	github.com/hashicorp/consul/api => github.com/hashicorp/consul/api v1.18.0
 	github.com/labstack/echo/v4 => github.com/labstack/echo/v4 v4.10.0
-	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.9.12
+	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.9.14
 	github.com/valyala/fasthttp => github.com/valyala/fasthttp v1.44.0
 	go.mongodb.org/mongo-driver => go.mongodb.org/mongo-driver v1.11.1
-	golang.org/x/text => golang.org/x/text v0.6.0
+	golang.org/x/text => golang.org/x/text v0.7.0
 )
