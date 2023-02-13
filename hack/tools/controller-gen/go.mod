@@ -2,7 +2,7 @@ module github.com/giantswarm/organization-operator/hack/tools/code-generator
 
 go 1.19
 
-require sigs.k8s.io/controller-tools v0.11.2
+require sigs.k8s.io/controller-tools v0.11.3
 
 require (
 	github.com/fatih/color v1.13.0 // indirect
