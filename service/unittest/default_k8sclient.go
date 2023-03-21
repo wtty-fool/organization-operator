@@ -13,14 +13,16 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake" // nolint:staticcheck
 
 	securityv1alpha1 "github.com/giantswarm/organization-operator/api/v1alpha1"
+	clientgofake "k8s.io/client-go/kubernetes/fake"
 )
 
 type fakeK8sClient struct {
 	ctrlClient client.Client
+	k8sClient  kubernetes.Interface
 	scheme     *runtime.Scheme
 }
 
-func FakeK8sClient(initObjs ...client.Object) k8sclient.Interface {
+func FakeK8sClient(initObjs ...runtime.Object) k8sclient.Interface {
 	var err error
 
 	var k8sClient k8sclient.Interface
@@ -36,7 +38,8 @@ func FakeK8sClient(initObjs ...client.Object) k8sclient.Interface {
 		}
 
 		k8sClient = &fakeK8sClient{
-			ctrlClient: fake.NewClientBuilder().WithScheme(scheme).WithObjects(initObjs...).Build(),
+			ctrlClient: fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(initObjs...).Build(),
+			k8sClient:  clientgofake.NewSimpleClientset(),
 			scheme:     scheme,
 		}
 	}
@@ -61,7 +64,7 @@ func (f *fakeK8sClient) ExtClient() clientset.Interface {
 }
 
 func (f *fakeK8sClient) K8sClient() kubernetes.Interface {
-	return nil
+	return f.k8sClient
 }
 
 func (f *fakeK8sClient) RESTClient() rest.Interface {

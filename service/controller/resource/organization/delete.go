@@ -3,6 +3,7 @@ package organization
 import (
 	"context"
 	"fmt"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	legacyCredentialLister "github.com/giantswarm/credentiald/v2/service/lister"
 	"github.com/giantswarm/microerror"
@@ -54,9 +55,18 @@ func (r *Resource) EnsureDeleted(ctx context.Context, obj interface{}) error {
 	}
 
 	orgNamespace := newOrganizationNamespace(org.Name)
-	r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("deleting organization namespace %#q", orgNamespace.Name))
 
-	err = r.k8sClient.CtrlClient().Delete(context.Background(), orgNamespace)
+	err = r.k8sClient.CtrlClient().Get(ctx, client.ObjectKey{Name: orgNamespace.Name}, orgNamespace)
+	if err == nil {
+		finalizerskeptcontext.SetKept(ctx)
+		if orgNamespace.DeletionTimestamp != nil {
+			r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("waiting for deletion of organization namespace %#q", orgNamespace.Name))
+		} else {
+			r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("deleting organization namespace %#q", orgNamespace.Name))
+			err = r.k8sClient.CtrlClient().Delete(context.Background(), orgNamespace)
+		}
+	}
+
 	if apierrors.IsNotFound(err) {
 		r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("organization namespace %#q does not exist", orgNamespace.Name))
 		return nil
