@@ -3,12 +3,13 @@ package controller
 import (
 	"context"
 	"fmt"
+	"testing"
+	"time"
+
 	companyclient "github.com/giantswarm/companyd-client-go"
 	credentialclient "github.com/giantswarm/credentiald/v2/client"
 	"github.com/giantswarm/k8sclient/v6/pkg/k8sclient"
 	"github.com/giantswarm/micrologger/microloggertest"
-	"github.com/giantswarm/organization-operator/api/v1alpha1"
-	"github.com/giantswarm/organization-operator/service/unittest"
 	"gopkg.in/resty.v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -17,8 +18,9 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"testing"
-	"time"
+
+	"github.com/giantswarm/organization-operator/api/v1alpha1"
+	"github.com/giantswarm/organization-operator/service/unittest"
 )
 
 const (

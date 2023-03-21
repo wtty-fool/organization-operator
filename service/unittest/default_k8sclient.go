@@ -12,8 +12,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake" // nolint:staticcheck
 
-	securityv1alpha1 "github.com/giantswarm/organization-operator/api/v1alpha1"
 	clientgofake "k8s.io/client-go/kubernetes/fake"
+
+	securityv1alpha1 "github.com/giantswarm/organization-operator/api/v1alpha1"
 )
 
 type fakeK8sClient struct {

@@ -3,6 +3,7 @@ package organization
 import (
 	"context"
 	"fmt"
+
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	legacyCredentialLister "github.com/giantswarm/credentiald/v2/service/lister"
