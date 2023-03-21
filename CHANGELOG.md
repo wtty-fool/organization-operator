@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added the use of the runtime/default seccomp profile.
 
+### Fixed
+
+- Prevented deletion of Organization CR until the organization namespace is deleted successfully
+
 ## [1.0.5] - 2023-01-16
 
 ## [1.0.4] - 2022-11-15
