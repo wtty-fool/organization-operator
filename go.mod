@@ -115,7 +115,7 @@ replace (
 	github.com/labstack/echo/v4 => github.com/labstack/echo/v4 v4.10.2
 	github.com/microcosm-cc/bluemonday => github.com/microcosm-cc/bluemonday v1.0.23
 	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.9.15
-	github.com/valyala/fasthttp => github.com/valyala/fasthttp v1.44.0
-	go.mongodb.org/mongo-driver => go.mongodb.org/mongo-driver v1.11.2
+	github.com/valyala/fasthttp => github.com/valyala/fasthttp v1.45.0
+	go.mongodb.org/mongo-driver => go.mongodb.org/mongo-driver v1.11.3
 	golang.org/x/text => golang.org/x/text v0.8.0
 )
