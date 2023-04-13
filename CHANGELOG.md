@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Remove shared app collection from circle CI
+- Dependencies: replaced `github.com/giantswarm/operatorkit/v8` with `github.com/giantswarm/operatorkit/v7` (latest version) 
 
 ## [1.0.6] - 2023-03-22
 
