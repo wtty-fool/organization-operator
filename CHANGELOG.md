@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.7] - 2023-04-25
+
 ### Changed
 
 - Remove shared app collection from circle CI
@@ -161,7 +163,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/giantswarm/organization-operator/compare/v1.0.6...HEAD
+[Unreleased]: https://github.com/giantswarm/organization-operator/compare/v1.0.7...HEAD
+[1.0.7]: https://github.com/giantswarm/organization-operator/compare/v1.0.6...v1.0.7
 [1.0.6]: https://github.com/giantswarm/organization-operator/compare/v1.0.5...v1.0.6
 [1.0.5]: https://github.com/giantswarm/organization-operator/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/giantswarm/organization-operator/compare/v1.0.3...v1.0.4
