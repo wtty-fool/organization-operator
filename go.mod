@@ -14,7 +14,7 @@ require (
 	github.com/giantswarm/micrologger v1.0.0
 	github.com/giantswarm/operatorkit/v7 v7.1.0
 	github.com/golang/mock v1.6.0
-	github.com/prometheus/client_golang v1.15.0
+	github.com/prometheus/client_golang v1.15.1
 	github.com/spf13/viper v1.15.0
 	gopkg.in/resty.v1 v1.12.0
 	k8s.io/api v0.25.0
@@ -116,6 +116,6 @@ replace (
 	github.com/microcosm-cc/bluemonday => github.com/microcosm-cc/bluemonday v1.0.23
 	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.9.16
 	github.com/valyala/fasthttp => github.com/valyala/fasthttp v1.47.0
-	go.mongodb.org/mongo-driver => go.mongodb.org/mongo-driver v1.11.4
+	go.mongodb.org/mongo-driver => go.mongodb.org/mongo-driver v1.11.5
 	golang.org/x/text => golang.org/x/text v0.9.0
 )
