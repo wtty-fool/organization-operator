@@ -8,6 +8,8 @@ import (
 // +genclient:noStatus
 // +genclient:nonNamespaced
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +kubebuilder:printcolumn:name="Namespace",type=string,JSONPath=`.status.namespace`
+// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 // +kubebuilder:resource:scope=Cluster,categories=common;giantswarm,shortName=org;orgs
 // +kubebuilder:storageversion
 // +kubebuilder:subresource:status
