@@ -11,8 +11,6 @@ project:
   commit: "[[ .SHA ]]"
 registry:
   domain: docker.io
-  pullSecret:
-    dockerConfigJSON: ""
 
 # Add seccomp to pod security context
 podSecurityContext:
