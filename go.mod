@@ -114,8 +114,8 @@ replace (
 	github.com/hashicorp/consul/api => github.com/hashicorp/consul/api v1.21.0
 	github.com/labstack/echo/v4 => github.com/labstack/echo/v4 v4.10.2
 	github.com/microcosm-cc/bluemonday => github.com/microcosm-cc/bluemonday v1.0.24
-	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.9.18
-	github.com/valyala/fasthttp => github.com/valyala/fasthttp v1.47.0
-	go.mongodb.org/mongo-driver => go.mongodb.org/mongo-driver v1.11.7
+	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.9.19
+	github.com/valyala/fasthttp => github.com/valyala/fasthttp v1.48.0
+	go.mongodb.org/mongo-driver => go.mongodb.org/mongo-driver v1.12.0
 	golang.org/x/text => golang.org/x/text v0.10.0
 )
