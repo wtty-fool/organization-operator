@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2023-06-28
+
 ### Changed
 
 - Update deployment to be PSS compliant.
@@ -183,7 +185,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/giantswarm/organization-operator/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/giantswarm/organization-operator/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/giantswarm/organization-operator/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/giantswarm/organization-operator/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/giantswarm/organization-operator/compare/v1.0.7...v1.1.0
 [1.0.7]: https://github.com/giantswarm/organization-operator/compare/v1.0.6...v1.0.7
