@@ -111,11 +111,11 @@ replace (
 	github.com/coreos/etcd v3.3.13+incompatible => github.com/coreos/etcd v3.3.25+incompatible
 	github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.9.1
-	github.com/hashicorp/consul/api => github.com/hashicorp/consul/api v1.24.0
+	github.com/hashicorp/consul/api => github.com/hashicorp/consul/api v1.25.0
 	github.com/labstack/echo/v4 => github.com/labstack/echo/v4 v4.11.1
 	github.com/microcosm-cc/bluemonday => github.com/microcosm-cc/bluemonday v1.0.25
 	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.9.22
-	github.com/valyala/fasthttp => github.com/valyala/fasthttp v1.49.0
+	github.com/valyala/fasthttp => github.com/valyala/fasthttp v1.50.0
 	go.mongodb.org/mongo-driver => go.mongodb.org/mongo-driver v1.12.1
 	golang.org/x/text => golang.org/x/text v0.13.0
 )
