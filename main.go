@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"time"
 
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/microkit/command"
@@ -110,6 +111,9 @@ func mainE(ctx context.Context) error {
 
 	daemonCommand.PersistentFlags().String(f.Service.LegacyOrganizations.Address, "", "The address of the companyd service.")
 	daemonCommand.PersistentFlags().String(f.Service.LegacyCredentials.Address, "", "The address of the credentiald service.")
+
+	defaultDuration, _ := time.ParseDuration("5m")
+	daemonCommand.PersistentFlags().Duration(f.Service.ResyncPeriod, defaultDuration, "The time between reconcile loops.")
 
 	err = newCommand.CobraCommand().Execute()
 	if err != nil {
