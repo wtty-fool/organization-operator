@@ -7,9 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- New config var `resyncPeriod` to control the reconcile loop resync period
+
 ## [1.5.0] - 2023-10-02
 
-## Changed
+### Changed
 
 - Propagate `global.podSecurityStandards.enforced` value set to `false` for PSS migration
 
@@ -46,7 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Remove shared app collection from circle CI
-- Dependencies: replaced `github.com/giantswarm/operatorkit/v8` with `github.com/giantswarm/operatorkit/v7` (latest version) 
+- Dependencies: replaced `github.com/giantswarm/operatorkit/v8` with `github.com/giantswarm/operatorkit/v7` (latest version)
 
 ## [1.0.6] - 2023-03-22
 

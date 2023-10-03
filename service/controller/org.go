@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"time"
+
 	"github.com/giantswarm/k8sclient/v7/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
@@ -23,6 +25,7 @@ type OrganizationConfig struct {
 	Logger                 micrologger.Logger
 	LegacyOrgClient        *companyclient.Client
 	LegacyCredentialClient *credentialclient.Client
+	ResyncPeriod           *time.Duration
 }
 
 type Organization struct {
@@ -50,6 +53,10 @@ func NewOrganization(config OrganizationConfig) (*Organization, error) {
 			// Name is used to compute finalizer names. This here results in something
 			// like operatorkit.giantswarm.io/organization-operator-todo-controller.
 			Name: project.Name() + "-organization-controller",
+		}
+
+		if config.ResyncPeriod != nil {
+			c.ResyncPeriod = *config.ResyncPeriod
 		}
 
 		operatorkitController, err = controller.New(c)

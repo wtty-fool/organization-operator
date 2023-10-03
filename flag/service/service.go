@@ -12,4 +12,5 @@ type Service struct {
 	Kubernetes          kubernetes.Kubernetes
 	LegacyOrganizations legacyorganizations.LegacyOrganizations
 	LegacyCredentials   legacycredentials.LegacyCredentials
+	ResyncPeriod        string
 }

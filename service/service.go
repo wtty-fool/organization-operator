@@ -127,12 +127,14 @@ func New(config Config) (*Service, error) {
 
 	var orgController *controller.Organization
 	{
+		resyncDuration := config.Viper.GetDuration(config.Flag.Service.ResyncPeriod)
 
 		c := controller.OrganizationConfig{
 			K8sClient:              k8sClient,
 			Logger:                 config.Logger,
 			LegacyOrgClient:        legacyOrgClient,
 			LegacyCredentialClient: legacyCredentialClient,
+			ResyncPeriod:           &resyncDuration,
 		}
 
 		orgController, err = controller.NewOrganization(c)
