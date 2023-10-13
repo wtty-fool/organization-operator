@@ -1,6 +1,8 @@
 module github.com/giantswarm/organization-operator
 
-go 1.19
+go 1.21
+
+toolchain go1.21.3
 
 require (
 	github.com/giantswarm/companyd-client-go v0.6.1
@@ -88,11 +90,11 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
-	golang.org/x/net v0.15.0 // indirect
+	golang.org/x/net v0.17.0 // indirect
 	golang.org/x/oauth2 v0.12.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
-	golang.org/x/sys v0.12.0 // indirect
-	golang.org/x/term v0.12.0 // indirect
+	golang.org/x/sys v0.13.0 // indirect
+	golang.org/x/term v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
@@ -117,9 +119,9 @@ replace (
 	github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.9.1
 	github.com/hashicorp/consul/api => github.com/hashicorp/consul/api v1.25.1
-	github.com/labstack/echo/v4 => github.com/labstack/echo/v4 v4.11.1
-	github.com/microcosm-cc/bluemonday => github.com/microcosm-cc/bluemonday v1.0.25
-	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.10.2
+	github.com/labstack/echo/v4 => github.com/labstack/echo/v4 v4.11.2
+	github.com/microcosm-cc/bluemonday => github.com/microcosm-cc/bluemonday v1.0.26
+	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.10.3
 	github.com/valyala/fasthttp => github.com/valyala/fasthttp v1.50.0
 	go.mongodb.org/mongo-driver => go.mongodb.org/mongo-driver v1.12.1
 	golang.org/x/text => golang.org/x/text v0.13.0
