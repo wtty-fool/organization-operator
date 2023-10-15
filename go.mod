@@ -16,7 +16,7 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/prometheus/client_golang v1.17.0
 	github.com/spf13/viper v1.17.0
-	gopkg.in/resty.v1 v1.12.0
+	gopkg.in/resty.v2 v2.10.0
 	k8s.io/api v0.25.0
 	k8s.io/apiextensions-apiserver v0.25.0
 	k8s.io/apimachinery v0.25.0
@@ -114,7 +114,7 @@ require (
 replace (
 	github.com/coreos/etcd v3.3.10+incompatible => github.com/coreos/etcd v3.3.25+incompatible
 	github.com/coreos/etcd v3.3.13+incompatible => github.com/coreos/etcd v3.3.25+incompatible
-	github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.5.0
+	github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.9.1
 	github.com/hashicorp/consul/api => github.com/hashicorp/consul/api v1.25.1
 	github.com/labstack/echo/v4 => github.com/labstack/echo/v4 v4.11.1
