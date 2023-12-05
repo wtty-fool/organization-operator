@@ -11,7 +11,7 @@ project:
   branch: "[[ .Branch ]]"
   commit: "[[ .SHA ]]"
 registry:
-  domain: docker.io
+  domain: gsoci.azurecr.io
 
 # Add seccomp to pod security context
 podSecurityContext:
