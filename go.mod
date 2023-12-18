@@ -17,7 +17,7 @@ require (
 	github.com/giantswarm/operatorkit/v7 v7.1.0
 	github.com/golang/mock v1.6.0
 	github.com/prometheus/client_golang v1.17.0
-	github.com/spf13/viper v1.18.0
+	github.com/spf13/viper v1.18.1
 	gopkg.in/resty.v1 v1.12.0
 	k8s.io/api v0.25.0
 	k8s.io/apiextensions-apiserver v0.25.0
