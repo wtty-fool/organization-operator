@@ -119,7 +119,7 @@ replace (
 	github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v5 v5.2.0
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.9.1
 	github.com/hashicorp/consul/api => github.com/hashicorp/consul/api v1.26.1
-	github.com/labstack/echo/v4 => github.com/labstack/echo/v4 v4.11.3
+	github.com/labstack/echo/v4 => github.com/labstack/echo/v4 v4.11.4
 	github.com/microcosm-cc/bluemonday => github.com/microcosm-cc/bluemonday v1.0.26
 	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.10.7
 	github.com/valyala/fasthttp => github.com/valyala/fasthttp v1.51.0
