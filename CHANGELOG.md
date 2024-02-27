@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.1] - 2024-02-27
+
 ### Added
 
 - Ensuring that the organization namespace is patched with the organization labels in case they are not present.
@@ -211,7 +213,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/giantswarm/organization-operator/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/giantswarm/organization-operator/compare/v1.6.1...HEAD
+[1.6.1]: https://github.com/giantswarm/organization-operator/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/giantswarm/organization-operator/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/giantswarm/organization-operator/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/giantswarm/organization-operator/compare/v1.3.0...v1.4.0
