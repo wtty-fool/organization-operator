@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Ensuring that the organization namespace is patched with the organization labels in case they are not present.
+
 ### Changed
 
 - Configure `gsoci.azurecr.io` as the default container image registry.

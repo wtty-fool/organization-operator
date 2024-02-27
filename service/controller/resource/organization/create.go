@@ -41,6 +41,10 @@ func (r *Resource) EnsureCreated(ctx context.Context, obj interface{}) error {
 	err = r.k8sClient.CtrlClient().Create(ctx, orgNamespace)
 	if apierrors.IsAlreadyExists(err) {
 		r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("organization namespace %#q already exists", orgNamespace.Name))
+		err := r.ensureOrganizationNamespaceHasOrganizationLabels(ctx, orgNamespace)
+		if err != nil {
+			return microerror.Mask(err)
+		}
 	} else if err != nil {
 		return microerror.Mask(err)
 	}
@@ -96,6 +100,30 @@ func (r *Resource) ensureOrganizationHasSubscriptionIdAnnotation(ctx context.Con
 	} else {
 		r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("azure.azureoperator.subscriptionid field not found or empty in secret %q", secret.Name))
 	}
+
+	return nil
+}
+
+func (r *Resource) ensureOrganizationNamespaceHasOrganizationLabels(ctx context.Context, namespace *corev1.Namespace) error {
+	r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("ensuring organization namespace %#q has organization labels", namespace.Name))
+
+	currentNamespace := &corev1.Namespace{}
+	err := r.k8sClient.CtrlClient().Get(ctx, ctrl.ObjectKey{Name: namespace.Name}, currentNamespace)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+	for key, value := range namespace.Labels {
+		if currentNamespace.Labels[key] != value {
+			r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("namespace %#q has label %q=%q, but should have %q=%q", namespace.Name, key, currentNamespace.Labels[key], key, value))
+			patch := []byte(fmt.Sprintf(`{"metadata":{"labels":{"%s": "%s"}}}`, key, value))
+			err = r.k8sClient.CtrlClient().Patch(ctx, namespace, ctrl.RawPatch(types.MergePatchType, patch))
+			if err != nil {
+				return microerror.Mask(err)
+			}
+		}
+	}
+
+	r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("ensured organization namespace %#q has organization labels", namespace.Name))
 
 	return nil
 }
