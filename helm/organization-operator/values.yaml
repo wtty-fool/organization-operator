@@ -1,15 +1,12 @@
 image:
   name: "giantswarm/organization-operator"
-  tag: "[[ .Version ]]"
+  tag: ""
 pod:
   user:
     id: 1000
   group:
     id: 1000
 resyncPeriod: "5m"
-project:
-  branch: "[[ .Branch ]]"
-  commit: "[[ .SHA ]]"
 registry:
   domain: gsoci.azurecr.io
 
@@ -24,7 +21,7 @@ securityContext:
     type: RuntimeDefault
 
 serviceMonitor:
-  enabled: true
+  enabled: false
   # -- (duration) Prometheus scrape interval.
   interval: "60s"
   # -- (duration) Prometheus scrape timeout.
@@ -32,4 +29,4 @@ serviceMonitor:
 
 global:
   podSecurityStandards:
-    enforced: false
+    enforced: true
