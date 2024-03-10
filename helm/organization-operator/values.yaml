@@ -1,6 +1,6 @@
 image:
   name: "giantswarm/organization-operator"
-  tag: ""
+  tag: "1.6.1"
 pod:
   user:
     id: 1000
