@@ -20,9 +20,6 @@
             "properties": {
                 "name": {
                     "type": "string"
-                },
-                "tag": {
-                    "type": "string"
                 }
             }
         },
@@ -57,17 +54,6 @@
                             "type": "string"
                         }
                     }
-                }
-            }
-        },
-        "project": {
-            "type": "object",
-            "properties": {
-                "branch": {
-                    "type": "string"
-                },
-                "commit": {
-                    "type": "string"
                 }
             }
         },
