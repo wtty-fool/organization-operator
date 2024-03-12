@@ -23,6 +23,7 @@ workflows:
               only: /^v.*/
 
       - architect/push-to-app-catalog:
+          executor: app-build-suite
           context: "architect"
           name: push-organization-operator-to-control-plane-app-catalog
           app_catalog: "control-plane-catalog"

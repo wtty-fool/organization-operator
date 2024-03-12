@@ -1,15 +1,11 @@
 image:
   name: "giantswarm/organization-operator"
-  tag: "[[ .Version ]]"
 pod:
   user:
     id: 1000
   group:
     id: 1000
 resyncPeriod: "5m"
-project:
-  branch: "[[ .Branch ]]"
-  commit: "[[ .SHA ]]"
 registry:
   domain: gsoci.azurecr.io
 
