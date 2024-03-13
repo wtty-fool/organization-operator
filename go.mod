@@ -92,8 +92,8 @@ require (
 	golang.org/x/net v0.21.0 // indirect
 	golang.org/x/oauth2 v0.16.0 // indirect
 	golang.org/x/sync v0.5.0 // indirect
-	golang.org/x/sys v0.17.0 // indirect
-	golang.org/x/term v0.17.0 // indirect
+	golang.org/x/sys v0.18.0 // indirect
+	golang.org/x/term v0.18.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
@@ -120,7 +120,7 @@ replace (
 	github.com/hashicorp/consul/api => github.com/hashicorp/consul/api v1.28.2
 	github.com/labstack/echo/v4 => github.com/labstack/echo/v4 v4.11.4
 	github.com/microcosm-cc/bluemonday => github.com/microcosm-cc/bluemonday v1.0.26
-	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.10.11
+	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.10.12
 	github.com/valyala/fasthttp => github.com/valyala/fasthttp v1.52.0
 	go.mongodb.org/mongo-driver => go.mongodb.org/mongo-driver v1.14.0
 	golang.org/x/text => golang.org/x/text v0.14.0
