@@ -1,24 +1,7 @@
-/*
-Copyright 2024.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
 package e2e
 
 import (
 	"fmt"
-	"os/exec"
 	"regexp"
 	"time"
 
@@ -53,7 +36,7 @@ var _ = Describe("controller", Ordered, func() {
 		Expect(utils.InstallCertManager()).To(Succeed())
 
 		By("creating manager namespace")
-		cmd := exec.Command(kubectlCmd, "create", "ns", namespace)
+		cmd := utils.safeExecCommand(kubectlCmd, "create", "ns", namespace)
 		_, _ = utils.Run(cmd)
 	})
 
@@ -65,7 +48,7 @@ var _ = Describe("controller", Ordered, func() {
 		utils.UninstallCertManager()
 
 		By("removing manager namespace")
-		cmd := exec.Command(kubectlCmd, "delete", "ns", namespace)
+		cmd := utils.safeExecCommand(kubectlCmd, "delete", "ns", namespace)
 		_, _ = utils.Run(cmd)
 	})
 
@@ -73,13 +56,13 @@ var _ = Describe("controller", Ordered, func() {
 		It("should run successfully", func() {
 			var controllerPodName string
 			var err error
-			// projectimage stores the name of the image used in the example
+
 			By("validating the project image name")
 			err = validateImageName(projectImage)
 			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
 			By("building the manager(Operator) image")
-			cmd := exec.Command(makeCmd, "docker-build", fmt.Sprintf("IMG=%s", projectImage))
+			cmd := utils.safeExecCommand(makeCmd, "docker-build", fmt.Sprintf("IMG=%s", projectImage))
 			_, err = utils.Run(cmd)
 			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
@@ -88,19 +71,18 @@ var _ = Describe("controller", Ordered, func() {
 			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
 			By("installing CRDs")
-			cmd = exec.Command(makeCmd, "install")
+			cmd = utils.safeExecCommand(makeCmd, "install")
 			_, err = utils.Run(cmd)
 			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
 			By("deploying the controller-manager")
-			cmd = exec.Command(makeCmd, "deploy", fmt.Sprintf("IMG=%s", projectImage))
+			cmd = utils.safeExecCommand(makeCmd, "deploy", fmt.Sprintf("IMG=%s", projectImage))
 			_, err = utils.Run(cmd)
 			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
 			By("validating that the controller-manager pod is running as expected")
 			verifyControllerUp := func() error {
-				// Get pod name
-				cmd = exec.Command(kubectlCmd, "get",
+				cmd = utils.safeExecCommand(kubectlCmd, "get",
 					"pods", "-l", "control-plane=controller-manager",
 					"-o", "go-template={{ range .items }}"+
 						"{{ if not .metadata.deletionTimestamp }}"+
@@ -119,7 +101,7 @@ var _ = Describe("controller", Ordered, func() {
 				ExpectWithOffset(2, controllerPodName).Should(ContainSubstring("controller-manager"))
 
 				// Validate pod status
-				cmd = exec.Command(kubectlCmd, "get",
+				cmd = utils.safeExecCommand(kubectlCmd, "get",
 					"pods", controllerPodName, "-o", "jsonpath={.status.phase}",
 					"-n", namespace,
 				)

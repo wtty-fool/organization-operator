@@ -21,6 +21,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -28,7 +29,8 @@ import (
 
 const (
 	prometheusOperatorVersion = "v0.72.0"
-	prometheusOperatorURLTmpl = "https://github.com/prometheus-operator/prometheus-operator/releases/download/%s/bundle.yaml"
+	prometheusOperatorURLTmpl = "https://github.com/prometheus-operator/prometheus-operator/" +
+		"releases/download/%s/bundle.yaml"
 
 	certmanagerVersion = "v1.14.4"
 	certmanagerURLTmpl = "https://github.com/jetstack/cert-manager/releases/download/%s/cert-manager.yaml"
@@ -45,6 +47,13 @@ func validateURL(rawURL string) error {
 	_, err := url.ParseRequestURI(rawURL)
 	return err
 }
+func safeExecCommand(name string, arg ...string) *exec.Cmd {
+	// Validate the command name
+	if !filepath.IsAbs(name) {
+		name, _ = exec.LookPath(name)
+	}
+	return exec.Command(name, arg...)
+}
 
 // InstallPrometheusOperator installs the prometheus Operator to be used to export the enabled metrics.
 func InstallPrometheusOperator() error {
@@ -52,7 +61,7 @@ func InstallPrometheusOperator() error {
 	if err := validateURL(url); err != nil {
 		return fmt.Errorf("invalid URL: %v", err)
 	}
-	cmd := exec.Command(kubectlCmd, "create", "-f", url)
+	cmd := safeExecCommand(kubectlCmd, "create", "-f", url)
 	_, err := Run(cmd)
 	return err
 }
@@ -84,7 +93,7 @@ func UninstallPrometheusOperator() {
 		warnError(fmt.Errorf("invalid URL: %v", err))
 		return
 	}
-	cmd := exec.Command(kubectlCmd, "delete", "-f", url)
+	cmd := safeExecCommand(kubectlCmd, "delete", "-f", url)
 	if _, err := Run(cmd); err != nil {
 		warnError(err)
 	}
@@ -97,7 +106,7 @@ func UninstallCertManager() {
 		warnError(fmt.Errorf("invalid URL: %v", err))
 		return
 	}
-	cmd := exec.Command(kubectlCmd, "delete", "-f", url)
+	cmd := safeExecCommand(kubectlCmd, "delete", "-f", url)
 	if _, err := Run(cmd); err != nil {
 		warnError(err)
 	}
@@ -109,13 +118,13 @@ func InstallCertManager() error {
 	if err := validateURL(url); err != nil {
 		return fmt.Errorf("invalid URL: %v", err)
 	}
-	cmd := exec.Command(kubectlCmd, "apply", "-f", url)
+	cmd := safeExecCommand(kubectlCmd, "apply", "-f", url)
 	if _, err := Run(cmd); err != nil {
 		return err
 	}
 	// Wait for cert-manager-webhook to be ready, which can take time if cert-manager
 	// was re-installed after uninstalling on a cluster
-	cmd = exec.Command(kubectlCmd, "wait", "deployment.apps/cert-manager-webhook",
+	cmd = safeExecCommand(kubectlCmd, "wait", "deployment.apps/cert-manager-webhook",
 		"--for", "condition=Available",
 		"--namespace", "cert-manager",
 		"--timeout", "5m",
@@ -131,7 +140,7 @@ func LoadImageToKindClusterWithName(name string) error {
 		cluster = v
 	}
 	kindOptions := []string{"load", "docker-image", name, "--name", cluster}
-	cmd := exec.Command(kindCmd, kindOptions...)
+	cmd := safeExecCommand(kindCmd, kindOptions...)
 	_, err := Run(cmd)
 	return err
 }
