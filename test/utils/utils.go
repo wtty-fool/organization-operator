@@ -18,30 +18,41 @@ package utils
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"os/exec"
 	"strings"
 
-	. "github.com/onsi/ginkgo/v2" //nolint:golint,revive
+	. "github.com/onsi/ginkgo/v2"
 )
 
 const (
 	prometheusOperatorVersion = "v0.72.0"
-	prometheusOperatorURL     = "https://github.com/prometheus-operator/prometheus-operator/" +
-		"releases/download/%s/bundle.yaml"
+	prometheusOperatorURLTmpl = "https://github.com/prometheus-operator/prometheus-operator/releases/download/%s/bundle.yaml"
 
 	certmanagerVersion = "v1.14.4"
 	certmanagerURLTmpl = "https://github.com/jetstack/cert-manager/releases/download/%s/cert-manager.yaml"
+
+	kubectlCmd = "kubectl"
+	kindCmd    = "kind"
 )
 
 func warnError(err error) {
 	fmt.Fprintf(GinkgoWriter, "warning: %v\n", err)
 }
 
+func validateURL(rawURL string) error {
+	_, err := url.ParseRequestURI(rawURL)
+	return err
+}
+
 // InstallPrometheusOperator installs the prometheus Operator to be used to export the enabled metrics.
 func InstallPrometheusOperator() error {
-	url := fmt.Sprintf(prometheusOperatorURL, prometheusOperatorVersion)
-	cmd := exec.Command("kubectl", "create", "-f", url)
+	url := fmt.Sprintf(prometheusOperatorURLTmpl, prometheusOperatorVersion)
+	if err := validateURL(url); err != nil {
+		return fmt.Errorf("invalid URL: %v", err)
+	}
+	cmd := exec.Command(kubectlCmd, "create", "-f", url)
 	_, err := Run(cmd)
 	return err
 }
@@ -68,8 +79,12 @@ func Run(cmd *exec.Cmd) ([]byte, error) {
 
 // UninstallPrometheusOperator uninstalls the prometheus
 func UninstallPrometheusOperator() {
-	url := fmt.Sprintf(prometheusOperatorURL, prometheusOperatorVersion)
-	cmd := exec.Command("kubectl", "delete", "-f", url)
+	url := fmt.Sprintf(prometheusOperatorURLTmpl, prometheusOperatorVersion)
+	if err := validateURL(url); err != nil {
+		warnError(fmt.Errorf("invalid URL: %v", err))
+		return
+	}
+	cmd := exec.Command(kubectlCmd, "delete", "-f", url)
 	if _, err := Run(cmd); err != nil {
 		warnError(err)
 	}
@@ -78,7 +93,11 @@ func UninstallPrometheusOperator() {
 // UninstallCertManager uninstalls the cert manager
 func UninstallCertManager() {
 	url := fmt.Sprintf(certmanagerURLTmpl, certmanagerVersion)
-	cmd := exec.Command("kubectl", "delete", "-f", url)
+	if err := validateURL(url); err != nil {
+		warnError(fmt.Errorf("invalid URL: %v", err))
+		return
+	}
+	cmd := exec.Command(kubectlCmd, "delete", "-f", url)
 	if _, err := Run(cmd); err != nil {
 		warnError(err)
 	}
@@ -87,18 +106,20 @@ func UninstallCertManager() {
 // InstallCertManager installs the cert manager bundle.
 func InstallCertManager() error {
 	url := fmt.Sprintf(certmanagerURLTmpl, certmanagerVersion)
-	cmd := exec.Command("kubectl", "apply", "-f", url)
+	if err := validateURL(url); err != nil {
+		return fmt.Errorf("invalid URL: %v", err)
+	}
+	cmd := exec.Command(kubectlCmd, "apply", "-f", url)
 	if _, err := Run(cmd); err != nil {
 		return err
 	}
 	// Wait for cert-manager-webhook to be ready, which can take time if cert-manager
-	// was re-installed after uninstalling on a cluster.
-	cmd = exec.Command("kubectl", "wait", "deployment.apps/cert-manager-webhook",
+	// was re-installed after uninstalling on a cluster
+	cmd = exec.Command(kubectlCmd, "wait", "deployment.apps/cert-manager-webhook",
 		"--for", "condition=Available",
 		"--namespace", "cert-manager",
 		"--timeout", "5m",
 	)
-
 	_, err := Run(cmd)
 	return err
 }
@@ -110,7 +131,7 @@ func LoadImageToKindClusterWithName(name string) error {
 		cluster = v
 	}
 	kindOptions := []string{"load", "docker-image", name, "--name", cluster}
-	cmd := exec.Command("kind", kindOptions...)
+	cmd := exec.Command(kindCmd, kindOptions...)
 	_, err := Run(cmd)
 	return err
 }

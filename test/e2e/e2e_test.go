@@ -19,6 +19,7 @@ package e2e
 import (
 	"fmt"
 	"os/exec"
+	"regexp"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -27,7 +28,21 @@ import (
 	"github.com/giantswarm/organization-operator/test/utils"
 )
 
-const namespace = "new-system"
+const (
+	namespace    = "new-system"
+	makeCmd      = "make"
+	kubectlCmd   = "kubectl"
+	projectImage = "example.com/new:v0.0.1"
+)
+
+var validImageNameRegex = regexp.MustCompile(`^[\w.\-/:]+$`)
+
+func validateImageName(name string) error {
+	if !validImageNameRegex.MatchString(name) {
+		return fmt.Errorf("invalid image name: %s", name)
+	}
+	return nil
+}
 
 var _ = Describe("controller", Ordered, func() {
 	BeforeAll(func() {
@@ -38,7 +53,7 @@ var _ = Describe("controller", Ordered, func() {
 		Expect(utils.InstallCertManager()).To(Succeed())
 
 		By("creating manager namespace")
-		cmd := exec.Command("kubectl", "create", "ns", namespace)
+		cmd := exec.Command(kubectlCmd, "create", "ns", namespace)
 		_, _ = utils.Run(cmd)
 	})
 
@@ -50,7 +65,7 @@ var _ = Describe("controller", Ordered, func() {
 		utils.UninstallCertManager()
 
 		By("removing manager namespace")
-		cmd := exec.Command("kubectl", "delete", "ns", namespace)
+		cmd := exec.Command(kubectlCmd, "delete", "ns", namespace)
 		_, _ = utils.Run(cmd)
 	})
 
@@ -58,34 +73,34 @@ var _ = Describe("controller", Ordered, func() {
 		It("should run successfully", func() {
 			var controllerPodName string
 			var err error
-
 			// projectimage stores the name of the image used in the example
-			var projectimage = "example.com/new:v0.0.1"
+			By("validating the project image name")
+			err = validateImageName(projectImage)
+			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
 			By("building the manager(Operator) image")
-			cmd := exec.Command("make", "docker-build", fmt.Sprintf("IMG=%s", projectimage))
+			cmd := exec.Command(makeCmd, "docker-build", fmt.Sprintf("IMG=%s", projectImage))
 			_, err = utils.Run(cmd)
 			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
-			By("loading the the manager(Operator) image on Kind")
-			err = utils.LoadImageToKindClusterWithName(projectimage)
+			By("loading the manager(Operator) image on Kind")
+			err = utils.LoadImageToKindClusterWithName(projectImage)
 			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
 			By("installing CRDs")
-			cmd = exec.Command("make", "install")
+			cmd = exec.Command(makeCmd, "install")
 			_, err = utils.Run(cmd)
 			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
 			By("deploying the controller-manager")
-			cmd = exec.Command("make", "deploy", fmt.Sprintf("IMG=%s", projectimage))
+			cmd = exec.Command(makeCmd, "deploy", fmt.Sprintf("IMG=%s", projectImage))
 			_, err = utils.Run(cmd)
 			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
 			By("validating that the controller-manager pod is running as expected")
 			verifyControllerUp := func() error {
 				// Get pod name
-
-				cmd = exec.Command("kubectl", "get",
+				cmd = exec.Command(kubectlCmd, "get",
 					"pods", "-l", "control-plane=controller-manager",
 					"-o", "go-template={{ range .items }}"+
 						"{{ if not .metadata.deletionTimestamp }}"+
@@ -98,13 +113,13 @@ var _ = Describe("controller", Ordered, func() {
 				ExpectWithOffset(2, err).NotTo(HaveOccurred())
 				podNames := utils.GetNonEmptyLines(string(podOutput))
 				if len(podNames) != 1 {
-					return fmt.Errorf("expect 1 controller pods running, but got %d", len(podNames))
+					return fmt.Errorf("expect 1 controller pod running, but got %d", len(podNames))
 				}
 				controllerPodName = podNames[0]
 				ExpectWithOffset(2, controllerPodName).Should(ContainSubstring("controller-manager"))
 
 				// Validate pod status
-				cmd = exec.Command("kubectl", "get",
+				cmd = exec.Command(kubectlCmd, "get",
 					"pods", controllerPodName, "-o", "jsonpath={.status.phase}",
 					"-n", namespace,
 				)
@@ -116,7 +131,6 @@ var _ = Describe("controller", Ordered, func() {
 				return nil
 			}
 			EventuallyWithOffset(1, verifyControllerUp, time.Minute, time.Second).Should(Succeed())
-
 		})
 	})
 })
