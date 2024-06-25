@@ -14,9 +14,10 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
-	securityv1alpha1 "github.com/giantswarm/organization-operator/api/v1alpha1"
-	controllers "github.com/giantswarm/organization-operator/internal/controller"
+	corev1alpha1 "github.com/giantswarm/organization-operator/api/v1alpha1"
+	"github.com/giantswarm/organization-operator/internal/controller"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -28,7 +29,7 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
-	utilruntime.Must(securityv1alpha1.AddToScheme(scheme))
+	utilruntime.Must(corev1alpha1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -50,9 +51,10 @@ func main() {
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:                 scheme,
-		MetricsBindAddress:     metricsAddr,
-		Port:                   9443,
+		Scheme: scheme,
+		Metrics: metricsserver.Options{
+			BindAddress: metricsAddr,
+		},
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "9f22d3c3.giantswarm.io",
@@ -62,7 +64,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.OrganizationReconciler{
+	if err = (&controller.OrganizationReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
