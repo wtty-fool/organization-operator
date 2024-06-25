@@ -2,6 +2,8 @@ package e2e
 
 import (
 	"fmt"
+	"os/exec"
+	"path/filepath"
 	"regexp"
 	"time"
 
@@ -20,6 +22,13 @@ const (
 
 var validImageNameRegex = regexp.MustCompile(`^[\w.\-/:]+$`)
 
+func safeExecCommand(name string, arg ...string) *exec.Cmd {
+	// Validate the command name
+	if !filepath.IsAbs(name) {
+		name, _ = exec.LookPath(name)
+	}
+	return exec.Command(name, arg...)
+}
 func validateImageName(name string) error {
 	if !validImageNameRegex.MatchString(name) {
 		return fmt.Errorf("invalid image name: %s", name)
@@ -36,7 +45,7 @@ var _ = Describe("controller", Ordered, func() {
 		Expect(utils.InstallCertManager()).To(Succeed())
 
 		By("creating manager namespace")
-		cmd := utils.safeExecCommand(kubectlCmd, "create", "ns", namespace)
+		cmd := safeExecCommand(kubectlCmd, "create", "ns", namespace)
 		_, _ = utils.Run(cmd)
 	})
 
@@ -48,7 +57,7 @@ var _ = Describe("controller", Ordered, func() {
 		utils.UninstallCertManager()
 
 		By("removing manager namespace")
-		cmd := utils.safeExecCommand(kubectlCmd, "delete", "ns", namespace)
+		cmd := safeExecCommand(kubectlCmd, "delete", "ns", namespace)
 		_, _ = utils.Run(cmd)
 	})
 
@@ -62,7 +71,7 @@ var _ = Describe("controller", Ordered, func() {
 			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
 			By("building the manager(Operator) image")
-			cmd := utils.safeExecCommand(makeCmd, "docker-build", fmt.Sprintf("IMG=%s", projectImage))
+			cmd := safeExecCommand(makeCmd, "docker-build", fmt.Sprintf("IMG=%s", projectImage))
 			_, err = utils.Run(cmd)
 			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
@@ -71,18 +80,18 @@ var _ = Describe("controller", Ordered, func() {
 			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
 			By("installing CRDs")
-			cmd = utils.safeExecCommand(makeCmd, "install")
+			cmd = safeExecCommand(makeCmd, "install")
 			_, err = utils.Run(cmd)
 			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
 			By("deploying the controller-manager")
-			cmd = utils.safeExecCommand(makeCmd, "deploy", fmt.Sprintf("IMG=%s", projectImage))
+			cmd = safeExecCommand(makeCmd, "deploy", fmt.Sprintf("IMG=%s", projectImage))
 			_, err = utils.Run(cmd)
 			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
 			By("validating that the controller-manager pod is running as expected")
 			verifyControllerUp := func() error {
-				cmd = utils.safeExecCommand(kubectlCmd, "get",
+				cmd = safeExecCommand(kubectlCmd, "get",
 					"pods", "-l", "control-plane=controller-manager",
 					"-o", "go-template={{ range .items }}"+
 						"{{ if not .metadata.deletionTimestamp }}"+
@@ -101,7 +110,7 @@ var _ = Describe("controller", Ordered, func() {
 				ExpectWithOffset(2, controllerPodName).Should(ContainSubstring("controller-manager"))
 
 				// Validate pod status
-				cmd = utils.safeExecCommand(kubectlCmd, "get",
+				cmd = safeExecCommand(kubectlCmd, "get",
 					"pods", controllerPodName, "-o", "jsonpath={.status.phase}",
 					"-n", namespace,
 				)
