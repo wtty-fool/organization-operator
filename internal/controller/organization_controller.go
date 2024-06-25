@@ -18,13 +18,15 @@ package controller
 
 import (
 	"context"
+	"fmt"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	corev1alpha1 "github.com/giantswarm/organization-operator/api/v1alpha1"
+	securityv1alpha1 "github.com/giantswarm/organization-operator/api/v1alpha1"
+	"github.com/giantswarm/organization-operator/pkg/resources/namespace"
 )
 
 // OrganizationReconciler reconciles a Organization object
@@ -33,23 +35,39 @@ type OrganizationReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=core.giantswarm.io,resources=organizations,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=core.giantswarm.io,resources=organizations/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=core.giantswarm.io,resources=organizations/finalizers,verbs=update
+//+kubebuilder:rbac:groups=security.giantswarm.io,resources=organizations,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=security.giantswarm.io,resources=organizations/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=security.giantswarm.io,resources=organizations/finalizers,verbs=update
 
-// Reconcile is part of the main kubernetes reconciliation loop which aims to
-// move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the Organization object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
-//
-// For more details, check Reconcile and its Result here:
-// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.17.3/pkg/reconcile
 func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	logger := log.FromContext(ctx)
 
-	// TODO(user): your logic here
+	var organization securityv1alpha1.Organization
+	if err := r.Get(ctx, req.NamespacedName, &organization); err != nil {
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	namespaceResource := namespace.New(r.Client)
+
+	if organization.DeletionTimestamp.IsZero() {
+		if err := namespaceResource.EnsureCreated(ctx, &organization); err != nil {
+			logger.Error(err, "Failed to create namespace")
+			return ctrl.Result{}, err
+		}
+
+		if organization.Status.Namespace == "" {
+			organization.Status.Namespace = fmt.Sprintf("org-%s", organization.Name)
+			if err := r.Status().Update(ctx, &organization); err != nil {
+				logger.Error(err, "Failed to update Organization status")
+				return ctrl.Result{}, err
+			}
+		}
+	} else {
+		if err := namespaceResource.EnsureDeleted(ctx, &organization); err != nil {
+			logger.Error(err, "Failed to delete namespace")
+			return ctrl.Result{}, err
+		}
+	}
 
 	return ctrl.Result{}, nil
 }
@@ -57,6 +75,6 @@ func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request
 // SetupWithManager sets up the controller with the Manager.
 func (r *OrganizationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&corev1alpha1.Organization{}).
+		For(&securityv1alpha1.Organization{}).
 		Complete(r)
 }

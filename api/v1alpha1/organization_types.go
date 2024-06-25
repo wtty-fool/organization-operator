@@ -28,8 +28,8 @@ type OrganizationSpec struct {
 
 // OrganizationStatus defines the observed state of Organization
 type OrganizationStatus struct {
-	// ID is the unique identifier of the organization
-	ID string `json:"id,omitempty"`
+	// Namespace is the name of the organization's namespace
+	Namespace string `json:"namespace,omitempty"`
 }
 
 //+kubebuilder:object:root=true
