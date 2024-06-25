@@ -20,22 +20,16 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 // OrganizationSpec defines the desired state of Organization
 type OrganizationSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
-	// Foo is an example field of Organization. Edit organization_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// Name is the name of the organization
+	Name string `json:"name"`
 }
 
 // OrganizationStatus defines the observed state of Organization
 type OrganizationStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// ID is the unique identifier of the organization
+	ID string `json:"id,omitempty"`
 }
 
 //+kubebuilder:object:root=true
