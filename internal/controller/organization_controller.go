@@ -1,26 +1,12 @@
-/*
-Copyright 2024.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
 package controller
 
 import (
 	"context"
 	"fmt"
 
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/util/retry"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -35,40 +21,78 @@ type OrganizationReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=security.giantswarm.io,resources=organizations,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=security.giantswarm.io,resources=organizations/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=security.giantswarm.io,resources=organizations/finalizers,verbs=update
-
 func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
+	logger.Info("Reconciling Organization", "namespacedName", req.NamespacedName)
 
 	var organization securityv1alpha1.Organization
-	if err := r.Get(ctx, req.NamespacedName, &organization); err != nil {
+	err := r.Get(ctx, req.NamespacedName, &organization)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			logger.Info("Organization not found. Attempting to delete associated namespace.")
+			return r.deleteAssociatedNamespace(ctx, req.Name)
+		}
+		logger.Error(err, "Unable to fetch Organization")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
 	namespaceResource := namespace.New(r.Client)
 
 	if organization.DeletionTimestamp.IsZero() {
+		logger.Info("Organization is not being deleted, ensuring namespace exists")
 		if err := namespaceResource.EnsureCreated(ctx, &organization); err != nil {
 			logger.Error(err, "Failed to create namespace")
 			return ctrl.Result{}, err
 		}
 
 		if organization.Status.Namespace == "" {
-			organization.Status.Namespace = fmt.Sprintf("org-%s", organization.Name)
-			if err := r.Status().Update(ctx, &organization); err != nil {
-				logger.Error(err, "Failed to update Organization status")
+			err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+				// Fetch the latest state of the organization to minimize the chance of a conflict error
+				if getErr := r.Get(ctx, req.NamespacedName, &organization); getErr != nil {
+					return getErr
+				}
+				organization.Status.Namespace = fmt.Sprintf("org-%s", organization.Name)
+				// Update operation
+				return r.Status().Update(ctx, &organization)
+			})
+			if err != nil {
+				logger.Error(err, "Failed to update Organization status after retries")
 				return ctrl.Result{}, err
 			}
+			return ctrl.Result{}, nil // Successfully updated
 		}
 	} else {
+		logger.Info("Organization is being deleted, ensuring namespace is deleted")
 		if err := namespaceResource.EnsureDeleted(ctx, &organization); err != nil {
 			logger.Error(err, "Failed to delete namespace")
 			return ctrl.Result{}, err
 		}
+		logger.Info("Namespace deleted successfully")
 	}
 
+	logger.Info("Reconciliation completed successfully")
+	return ctrl.Result{}, nil
+}
+
+func (r *OrganizationReconciler) deleteAssociatedNamespace(ctx context.Context, organizationName string) (ctrl.Result, error) {
+	logger := log.FromContext(ctx)
+	namespaceName := fmt.Sprintf("org-%s", organizationName)
+
+	namespaceResource := namespace.New(r.Client)
+	dummyOrg := &securityv1alpha1.Organization{
+		Spec: securityv1alpha1.OrganizationSpec{
+			Name: organizationName,
+		},
+	}
+
+	err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		return namespaceResource.EnsureDeleted(ctx, dummyOrg)
+	})
+	if err != nil {
+		logger.Error(err, "Failed to delete namespace after retries", "namespace", namespaceName)
+		return ctrl.Result{}, err
+	}
+	logger.Info("Associated namespace deleted successfully", "namespace", namespaceName)
 	return ctrl.Result{}, nil
 }
 

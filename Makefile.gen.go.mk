@@ -102,18 +102,10 @@ nancy: ## Runs nancy (requires v1.0.37 or newer).
 	@echo "====> $@"
 	CGO_ENABLED=0 go list -json -deps ./... | nancy sleuth --skip-update-check --quiet --exclude-vulnerability-file ./.nancy-ignore --additional-exclude-vulnerability-files ./.nancy-ignore.generated
 
-ENVTEST_K8S_VERSION = 1.29.0
-LOCALBIN ?= $(shell pwd)/bin
-ENVTEST = $(LOCALBIN)/setup-envtest
-
 .PHONY: test
-test: manifests generate fmt vet envtest ## Run tests.
-	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out
-
-.PHONY: envtest
-envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
-$(ENVTEST): $(LOCALBIN)
-	test -s $(LOCALBIN)/setup-envtest || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
+test: ## Runs go test with default values.
+	@echo "====> $@"
+	go test -ldflags "$(LDFLAGS)" -race ./...
 
 .PHONY: build-docker
 build-docker: build-linux ## Builds docker image to registry.
