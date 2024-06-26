@@ -39,13 +39,18 @@ spec:
           spec:
             description: OrganizationSpec defines the desired state of Organization
             properties:
-              foo:
-                description: Foo is an example field of Organization. Edit organization_types.go
-                  to remove/update
+              name:
+                description: Name is the name of the organization
                 type: string
+            required:
+            - name
             type: object
           status:
             description: OrganizationStatus defines the observed state of Organization
+            properties:
+              namespace:
+                description: Namespace is the name of the organization's namespace
+                type: string
             type: object
         type: object
     served: true
