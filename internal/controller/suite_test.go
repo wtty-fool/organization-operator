@@ -17,8 +17,6 @@ limitations under the License.
 package controller
 
 import (
-	"fmt"
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -52,50 +50,16 @@ var _ = BeforeSuite(func() {
 		ErrorIfCRDPathMissing: true,
 	}
 
-	// Debug: Print current working directory
-	pwd, _ := os.Getwd()
-	fmt.Printf("Current working directory: %s\n", pwd)
-
-	// Debug: Print KUBEBUILDER_ASSETS
-	fmt.Printf("KUBEBUILDER_ASSETS: %s\n", os.Getenv("KUBEBUILDER_ASSETS"))
-
-	// Check if KUBEBUILDER_ASSETS is set, if not, try to set it
-	if os.Getenv("KUBEBUILDER_ASSETS") == "" {
-		possiblePaths := []string{
-			filepath.Join("..", "..", "testbin", "bin"),
-			filepath.Join("..", "..", "bin"),
-			"/usr/local/kubebuilder/bin",
-			os.Getenv("HOME") + "/go/bin",
-		}
-
-		for _, path := range possiblePaths {
-			fmt.Printf("Checking path: %s\n", path)
-			if _, err := os.Stat(filepath.Join(path, "etcd")); err == nil {
-				os.Setenv("KUBEBUILDER_ASSETS", path)
-				fmt.Printf("Set KUBEBUILDER_ASSETS to: %s\n", path)
-				break
-			}
-		}
-	}
-
-	// Debug: Print contents of KUBEBUILDER_ASSETS
-	if assetPath := os.Getenv("KUBEBUILDER_ASSETS"); assetPath != "" {
-		fmt.Printf("Contents of KUBEBUILDER_ASSETS (%s):\n", assetPath)
-		files, _ := os.ReadDir(assetPath)
-		for _, file := range files {
-			fmt.Println(file.Name())
-		}
-	} else {
-		fmt.Println("KUBEBUILDER_ASSETS is not set")
-	}
-
 	var err error
+	// cfg is defined in this file globally.
 	cfg, err = testEnv.Start()
 	Expect(err).NotTo(HaveOccurred())
 	Expect(cfg).NotTo(BeNil())
 
 	err = corev1alpha1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
+
+	//+kubebuilder:scaffold:scheme
 
 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
 	Expect(err).NotTo(HaveOccurred())

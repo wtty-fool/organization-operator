@@ -106,25 +106,14 @@ ENVTEST_K8S_VERSION = 1.29.0
 LOCALBIN ?= $(shell pwd)/bin
 ENVTEST = $(LOCALBIN)/setup-envtest
 
+.PHONY: test
+test: manifests generate fmt vet envtest ## Run tests.
+	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out
+
 .PHONY: envtest
 envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
 $(ENVTEST): $(LOCALBIN)
 	test -s $(LOCALBIN)/setup-envtest || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
-
-.PHONY: setup-test-env
-setup-test-env: envtest ## Setup test environment
-	$(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path
-	mkdir -p testbin/bin
-	cp -r $(LOCALBIN)/* testbin/bin/ || true
-	@echo "Contents of $(LOCALBIN):"
-	@ls -la $(LOCALBIN)
-	@echo "Contents of testbin/bin:"
-	@ls -la testbin/bin
-
-.PHONY: test
-test: manifests generate fmt vet setup-test-env ## Run tests.
-	@echo "KUBEBUILDER_ASSETS=${KUBEBUILDER_ASSETS}"
-	KUBEBUILDER_ASSETS="$(shell pwd)/testbin/bin" go test ./... -coverprofile cover.out -v
 
 .PHONY: build-docker
 build-docker: build-linux ## Builds docker image to registry.
