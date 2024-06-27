@@ -5,7 +5,7 @@
 domain: giantswarm.io
 layout:
 - go.kubebuilder.io/v4
-projectName: organization-operator-kubebuilder
+projectName: organization-operator
 repo: github.com/giantswarm/organization-operator
 resources:
 - api:
