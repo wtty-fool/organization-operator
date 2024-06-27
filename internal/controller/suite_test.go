@@ -18,6 +18,7 @@ package controller
 
 import (
 	"path/filepath"
+	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -35,10 +36,10 @@ var cfg *rest.Config
 var k8sClient client.Client
 var testEnv *envtest.Environment
 
-//func TestAPIs(t *testing.T) {
-//	RegisterFailHandler(Fail)
-//	RunSpecs(t, "Controller Suite")
-//}
+func TestAPIs(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "Controller Suite")
+}
 
 var _ = BeforeSuite(func() {
 	logf.SetLogger(zap.New(zap.WriteTo(GinkgoWriter), zap.UseDevMode(true)))

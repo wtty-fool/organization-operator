@@ -12,13 +12,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	"github.com/giantswarm/organization-operator/api/v1alpha1"
 	securityv1alpha1 "github.com/giantswarm/organization-operator/api/v1alpha1"
 )
 
-const (
-	organizationFinalizerName = "organization.giantswarm.io/finalizer"
-)
+const organizationFinalizerName = "organization.giantswarm.io/finalizer"
 
 type OrganizationReconciler struct {
 	client.Client
@@ -44,7 +41,7 @@ func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	}
 
 	// Add finalizer if it doesn't exist
-	if !containsString(organization.ObjectMeta.Finalizers, organizationFinalizerName) {
+	if !hasOrganizationFinalizer(&organization) {
 		organization.ObjectMeta.Finalizers = append(organization.ObjectMeta.Finalizers, organizationFinalizerName)
 		if err := r.Update(ctx, &organization); err != nil {
 			logger.Error(err, "Failed to update Organization with finalizer")
@@ -80,32 +77,29 @@ func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	return ctrl.Result{}, nil
 }
 
-func (r *OrganizationReconciler) reconcileDelete(ctx context.Context, organization *v1alpha1.Organization) (ctrl.Result, error) {
+func (r *OrganizationReconciler) reconcileDelete(ctx context.Context, organization *securityv1alpha1.Organization) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
-	namespaceName := fmt.Sprintf("org-%s", organization.Name)
 
-	namespace := &corev1.Namespace{}
-	if err := r.Get(ctx, client.ObjectKey{Name: namespaceName}, namespace); err == nil {
-		logger.Info("Attempting to delete namespace", "namespace", namespaceName, "finalizers", namespace.Finalizers)
-		if err := r.Delete(ctx, namespace); err != nil {
-			logger.Error(err, "Failed to delete namespace", "namespace", namespaceName)
-			return ctrl.Result{}, err
-		}
-	} else if !errors.IsNotFound(err) {
-		logger.Error(err, "Failed to get namespace for deletion", "namespace", namespaceName)
+	// Delete the associated namespace
+	namespaceName := fmt.Sprintf("org-%s", organization.Name)
+	namespace := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: namespaceName,
+		},
+	}
+	if err := r.Delete(ctx, namespace); err != nil && !errors.IsNotFound(err) {
+		logger.Error(err, "Failed to delete namespace")
 		return ctrl.Result{}, err
 	}
 
-	if containsString(organization.ObjectMeta.Finalizers, organizationFinalizerName) {
-		organization.ObjectMeta.Finalizers = removeString(organization.ObjectMeta.Finalizers, organizationFinalizerName)
-		if err := r.Update(ctx, organization); err != nil {
-			logger.Error(err, "Failed to update Organization during finalizer removal", "organization", organization.Name)
-			return ctrl.Result{}, err
-		}
-		logger.Info("Finalizer removed", "organization", organization.Name)
+	// Remove the finalizer
+	organization.ObjectMeta.Finalizers = removeOrganizationFinalizer(organization.ObjectMeta.Finalizers)
+	if err := r.Update(ctx, organization); err != nil {
+		logger.Error(err, "Failed to remove finalizer")
+		return ctrl.Result{}, err
 	}
 
-	logger.Info("Successfully deleted organization and namespace", "namespace", namespaceName)
+	logger.Info("Successfully deleted organization and removed finalizer")
 	return ctrl.Result{}, nil
 }
 
@@ -115,20 +109,20 @@ func (r *OrganizationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-func containsString(slice []string, s string) bool {
-	for _, item := range slice {
-		if item == s {
+func hasOrganizationFinalizer(organization *securityv1alpha1.Organization) bool {
+	for _, finalizer := range organization.ObjectMeta.Finalizers {
+		if finalizer == organizationFinalizerName {
 			return true
 		}
 	}
 	return false
 }
 
-func removeString(slice []string, s string) []string {
+func removeOrganizationFinalizer(finalizers []string) []string {
 	result := []string{}
-	for _, item := range slice {
-		if item != s {
-			result = append(result, item)
+	for _, finalizer := range finalizers {
+		if finalizer != organizationFinalizerName {
+			result = append(result, finalizer)
 		}
 	}
 	return result
