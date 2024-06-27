@@ -24,7 +24,6 @@ var testEnv *envtest.Environment
 
 func TestAPIs(t *testing.T) {
 	RegisterFailHandler(Fail)
-
 	RunSpecs(t, "Controller Suite")
 }
 
@@ -35,6 +34,7 @@ var _ = BeforeSuite(func() {
 	testEnv = &envtest.Environment{
 		CRDDirectoryPaths:     []string{filepath.Join("..", "..", "config", "crd", "bases")},
 		ErrorIfCRDPathMissing: true,
+		UseExistingCluster:    new(bool), // Use existing cluster
 	}
 
 	var err error
@@ -51,7 +51,6 @@ var _ = BeforeSuite(func() {
 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient).NotTo(BeNil())
-
 })
 
 var _ = AfterSuite(func() {
