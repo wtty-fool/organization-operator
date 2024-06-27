@@ -17,7 +17,7 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
 	corev1alpha1 "github.com/giantswarm/organization-operator/api/v1alpha1"
-	"github.com/giantswarm/organization-operator/internal/controller"
+	"github.com/giantswarm/organization-operator/controllers"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -65,7 +65,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controller.OrganizationReconciler{
+	if err = (&controllers.OrganizationReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
