@@ -1,11 +1,19 @@
 package service
 
 import (
-	"github.com/giantswarm/operatorkit/v7/pkg/flag/service/kubernetes"
+	"time"
 )
 
-// Service is an intermediate data structure for command line configuration flags.
+type Config struct {
+	Kubernetes   KubernetesConfig
+	ResyncPeriod time.Duration
+}
+
+type KubernetesConfig struct {
+	InCluster      bool
+	KubeConfigPath string
+}
+
 type Service struct {
-	Kubernetes   kubernetes.Kubernetes
-	ResyncPeriod string
+	Config
 }
