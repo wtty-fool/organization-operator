@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/giantswarm/credentiald/v2/service"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/microkit/command"
 	"github.com/giantswarm/microkit/server"
@@ -13,6 +12,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/giantswarm/organization-operator/pkg/flag"
+	"github.com/giantswarm/organization-operator/pkg/flag/service"
 	"github.com/giantswarm/organization-operator/pkg/project"
 )
 
@@ -108,9 +108,6 @@ func mainE(ctx context.Context) error {
 	daemonCommand.PersistentFlags().String(f.Service.Kubernetes.TLS.CAFile, "", "Certificate authority file path to use to authenticate with Kubernetes.")
 	daemonCommand.PersistentFlags().String(f.Service.Kubernetes.TLS.CrtFile, "", "Certificate file path to use to authenticate with Kubernetes.")
 	daemonCommand.PersistentFlags().String(f.Service.Kubernetes.TLS.KeyFile, "", "Key file path to use to authenticate with Kubernetes.")
-
-	daemonCommand.PersistentFlags().String(f.Service.LegacyOrganizations.Address, "", "The address of the companyd service.")
-	daemonCommand.PersistentFlags().String(f.Service.LegacyCredentials.Address, "", "The address of the credentiald service.")
 
 	defaultDuration, _ := time.ParseDuration("5m")
 	daemonCommand.PersistentFlags().Duration(f.Service.ResyncPeriod, defaultDuration, "The time between reconcile loops.")

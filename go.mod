@@ -3,7 +3,6 @@ module github.com/giantswarm/organization-operator
 go 1.21
 
 require (
-	github.com/giantswarm/credentiald/v2 v2.17.0
 	github.com/giantswarm/k8sclient/v7 v7.2.0
 	github.com/giantswarm/k8smetadata v0.25.0
 	github.com/giantswarm/microerror v0.4.1
@@ -34,9 +33,6 @@ require (
 	github.com/getsentry/sentry-go v0.25.0 // indirect
 	github.com/giantswarm/backoff v1.0.0 // indirect
 	github.com/giantswarm/exporterkit v1.1.0 // indirect
-	github.com/giantswarm/k8sclient/v4 v4.0.0 // indirect
-	github.com/giantswarm/microendpoint v1.1.0 // indirect
-	github.com/giantswarm/operatorkit/v2 v2.0.1 // indirect
 	github.com/giantswarm/to v0.4.0 // indirect
 	github.com/giantswarm/versionbundle v1.1.0 // indirect
 	github.com/go-kit/kit v0.13.0 // indirect
