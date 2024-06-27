@@ -66,9 +66,8 @@ func main() {
 	}
 
 	if err = (&controller.OrganizationReconciler{
-		Client:       mgr.GetClient(),
-		Scheme:       mgr.GetScheme(),
-		ResyncPeriod: resyncPeriod,
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Organization")
 		os.Exit(1)

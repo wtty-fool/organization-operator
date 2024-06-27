@@ -92,7 +92,6 @@ func (r *Resource) updateNamespaceIfNeeded(ctx context.Context, namespace *corev
 		}
 		logger.Info("Namespace updated successfully", "namespace", namespace.Name)
 	}
-
 	return nil
 }
 
