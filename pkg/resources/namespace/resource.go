@@ -41,7 +41,7 @@ func (r *Resource) EnsureCreated(ctx context.Context, org *securityv1alpha1.Orga
 	if err != nil {
 		if apierrors.IsAlreadyExists(err) {
 			logger.Info("Namespace already exists", "namespace", namespaceName)
-			return nil
+			return r.updateNamespaceIfNeeded(ctx, namespace)
 		}
 		logger.Error(err, "Failed to create namespace", "namespace", namespaceName)
 		return err
@@ -52,23 +52,50 @@ func (r *Resource) EnsureCreated(ctx context.Context, org *securityv1alpha1.Orga
 }
 
 func (r *Resource) EnsureDeleted(ctx context.Context, org *securityv1alpha1.Organization) error {
+	logger := log.FromContext(ctx)
 	namespaceName := fmt.Sprintf("org-%s", org.Name)
-	namespace := &corev1.Namespace{}
+	namespace := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: namespaceName,
+		},
+	}
 
-	if err := r.client.Get(ctx, client.ObjectKey{Name: namespaceName}, namespace); err != nil {
+	logger.Info("Deleting namespace", "namespace", namespaceName)
+	err := r.client.Delete(ctx, namespace)
+	if err != nil {
 		if apierrors.IsNotFound(err) {
-			log.FromContext(ctx).Info("Namespace not found, already deleted")
+			logger.Info("Namespace not found, already deleted", "namespace", namespaceName)
 			return nil
 		}
+		logger.Error(err, "Failed to delete namespace", "namespace", namespaceName)
 		return err
 	}
 
-	if len(namespace.Finalizers) > 0 {
-		namespace.Finalizers = nil
-		if err := r.client.Update(ctx, namespace); err != nil {
-			return err
-		}
+	logger.Info("Namespace deleted successfully", "namespace", namespaceName)
+	return nil
+}
+
+func (r *Resource) updateNamespaceIfNeeded(ctx context.Context, namespace *corev1.Namespace) error {
+	logger := log.FromContext(ctx)
+	currentNamespace := &corev1.Namespace{}
+	err := r.client.Get(ctx, client.ObjectKey{Name: namespace.Name}, currentNamespace)
+	if err != nil {
+		return err
 	}
 
-	return r.client.Delete(ctx, namespace)
+	if !namespacesEqual(currentNamespace, namespace) {
+		logger.Info("Updating namespace", "namespace", namespace.Name)
+		err = r.client.Update(ctx, namespace)
+		if err != nil {
+			logger.Error(err, "Failed to update namespace", "namespace", namespace.Name)
+			return err
+		}
+		logger.Info("Namespace updated successfully", "namespace", namespace.Name)
+	}
+
+	return nil
+}
+
+func namespacesEqual(a, b *corev1.Namespace) bool {
+	return a.Labels["giantswarm.io/organization"] == b.Labels["giantswarm.io/organization"]
 }
