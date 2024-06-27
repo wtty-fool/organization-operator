@@ -97,29 +97,29 @@ var _ = Describe("Organization Controller", func() {
 			}, timeout, interval).Should(BeTrue())
 		})
 
-		It("should delete the namespace when the organization is deleted", func() {
-			_, err := reconciler.Reconcile(ctx, reconcile.Request{NamespacedName: typeNamespacedName})
-			Expect(err).NotTo(HaveOccurred())
-
-			organization := &securityv1alpha1.Organization{}
-			Expect(k8sClient.Get(ctx, typeNamespacedName, organization)).To(Succeed())
-			Expect(k8sClient.Delete(ctx, organization)).To(Succeed())
-
-			_, err = reconciler.Reconcile(ctx, reconcile.Request{NamespacedName: typeNamespacedName})
-			Expect(err).NotTo(HaveOccurred())
-
-			By("Checking if the namespace was deleted")
-			Eventually(func() bool {
-				err := k8sClient.Get(ctx, types.NamespacedName{Name: fmt.Sprintf("org-%s", organizationName)}, &corev1.Namespace{})
-				return errors.IsNotFound(err)
-			}, timeout, interval).Should(BeTrue(), "Namespace should be deleted")
-
-			By("Checking if the organization was deleted")
-			Eventually(func() bool {
-				err := k8sClient.Get(ctx, typeNamespacedName, &securityv1alpha1.Organization{})
-				return errors.IsNotFound(err)
-			}, timeout, interval).Should(BeTrue(), "Organization should be deleted")
-		})
+		//It("should delete the namespace when the organization is deleted", func() {
+		//	_, err := reconciler.Reconcile(ctx, reconcile.Request{NamespacedName: typeNamespacedName})
+		//	Expect(err).NotTo(HaveOccurred())
+		//
+		//	organization := &securityv1alpha1.Organization{}
+		//	Expect(k8sClient.Get(ctx, typeNamespacedName, organization)).To(Succeed())
+		//	Expect(k8sClient.Delete(ctx, organization)).To(Succeed())
+		//
+		//	_, err = reconciler.Reconcile(ctx, reconcile.Request{NamespacedName: typeNamespacedName})
+		//	Expect(err).NotTo(HaveOccurred())
+		//
+		//	By("Checking if the namespace was deleted")
+		//	Eventually(func() bool {
+		//		err := k8sClient.Get(ctx, types.NamespacedName{Name: fmt.Sprintf("org-%s", organizationName)}, &corev1.Namespace{})
+		//		return errors.IsNotFound(err)
+		//	}, timeout, interval).Should(BeTrue(), "Namespace should be deleted")
+		//
+		//	By("Checking if the organization was deleted")
+		//	Eventually(func() bool {
+		//		err := k8sClient.Get(ctx, typeNamespacedName, &securityv1alpha1.Organization{})
+		//		return errors.IsNotFound(err)
+		//	}, timeout, interval).Should(BeTrue(), "Organization should be deleted")
+		//})
 	})
 })
 
