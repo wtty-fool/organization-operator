@@ -1,111 +1,64 @@
 package controllers
 
 import (
-	"time"
+	"context"
 
-	"github.com/giantswarm/k8sclient/v7/pkg/k8sclient"
-	"github.com/giantswarm/microerror"
-	"github.com/giantswarm/micrologger"
-	"github.com/giantswarm/operatorkit/v7/pkg/controller"
-	"github.com/giantswarm/operatorkit/v7/pkg/resource"
-	"github.com/giantswarm/operatorkit/v7/pkg/resource/wrapper/metricsresource"
-	"github.com/giantswarm/operatorkit/v7/pkg/resource/wrapper/retryresource"
+	"github.com/go-logr/logr"
+	"k8s.io/apimachinery/pkg/runtime"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	securityv1alpha1 "github.com/giantswarm/organization-operator/api/v1alpha1"
-	"github.com/giantswarm/organization-operator/pkg/project"
 	"github.com/giantswarm/organization-operator/pkg/resources/organization"
 )
 
-type OrganizationConfig struct {
-	K8sClient    k8sclient.Interface
-	Logger       micrologger.Logger
-	ResyncPeriod *time.Duration
+// OrganizationReconciler reconciles a Organization object
+type OrganizationReconciler struct {
+	client.Client
+	Log    logr.Logger
+	Scheme *runtime.Scheme
 }
 
-type Organization struct {
-	*controller.Controller
-}
+//+kubebuilder:rbac:groups=security.giantswarm.io,resources=organizations,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=security.giantswarm.io,resources=organizations/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=security.giantswarm.io,resources=organizations/finalizers,verbs=update
 
-func NewOrganization(config OrganizationConfig) (*Organization, error) {
-	var err error
+func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	log := r.Log.WithValues("organization", req.NamespacedName)
 
-	resources, err := newOrganizationResources(config)
+	var org securityv1alpha1.Organization
+	if err := r.Get(ctx, req.NamespacedName, &org); err != nil {
+		log.Error(err, "unable to fetch Organization")
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	orgResource, err := organization.New(organization.Config{
+		K8sClient: r.Client,
+		Logger:    log,
+	})
 	if err != nil {
-		return nil, microerror.Mask(err)
+		log.Error(err, "failed to create organization resource")
+		return ctrl.Result{}, err
 	}
 
-	var operatorkitController *controller.Controller
-	{
-		c := controller.Config{
-			K8sClient: config.K8sClient,
-			Logger:    config.Logger,
-			NewRuntimeObjectFunc: func() client.Object {
-				return new(securityv1alpha1.Organization)
-			},
-			Resources: resources,
-
-			// Name is used to compute finalizer names. This here results in something
-			// like operatorkit.giantswarm.io/organization-operator-todo-controller.
-			Name: project.Name() + "-organization-controller",
+	if org.DeletionTimestamp.IsZero() {
+		if err := orgResource.EnsureCreated(ctx, &org); err != nil {
+			log.Error(err, "failed to ensure organization creation")
+			return ctrl.Result{}, err
 		}
-
-		if config.ResyncPeriod != nil {
-			c.ResyncPeriod = *config.ResyncPeriod
-		}
-
-		operatorkitController, err = controller.New(c)
-		if err != nil {
-			return nil, microerror.Mask(err)
+	} else {
+		if err := orgResource.EnsureDeleted(ctx, &org); err != nil {
+			log.Error(err, "failed to ensure organization deletion")
+			return ctrl.Result{}, err
 		}
 	}
 
-	c := &Organization{
-		Controller: operatorkitController,
-	}
-
-	return c, nil
+	return ctrl.Result{}, nil
 }
 
-func newOrganizationResources(config OrganizationConfig) ([]resource.Interface, error) {
-	var err error
-
-	var orgResource resource.Interface
-	{
-		c := organization.Config{
-			K8sClient: config.K8sClient,
-			Logger:    config.Logger,
-		}
-
-		orgResource, err = organization.New(c)
-		if err != nil {
-			return nil, microerror.Mask(err)
-		}
-	}
-
-	resources := []resource.Interface{
-		orgResource,
-	}
-
-	{
-		c := retryresource.WrapConfig{
-			Logger: config.Logger,
-		}
-
-		resources, err = retryresource.Wrap(resources, c)
-		if err != nil {
-			return nil, microerror.Mask(err)
-		}
-	}
-
-	{
-		c := metricsresource.WrapConfig{}
-
-		resources, err = metricsresource.Wrap(resources, c)
-		if err != nil {
-			return nil, microerror.Mask(err)
-		}
-	}
-
-	return resources, nil
+// SetupWithManager sets up the controller with the Manager.
+func (r *OrganizationReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	return ctrl.NewControllerManagedBy(mgr).
+		For(&securityv1alpha1.Organization{}).
+		Complete(r)
 }

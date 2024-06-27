@@ -3,18 +3,17 @@ package organization
 import (
 	"fmt"
 
-	"github.com/giantswarm/k8sclient/v7/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
-	"github.com/giantswarm/micrologger"
+	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/giantswarm/organization-operator/pkg/label"
 	"github.com/giantswarm/organization-operator/pkg/project"
 )
 
 const (
-	Name                   = "organization"
 	organizationNamePrefix = "org-"
 )
 
@@ -29,20 +28,22 @@ var (
 )
 
 type Config struct {
-	K8sClient k8sclient.Interface
-	Logger    micrologger.Logger
+	K8sClient client.Client
+	Logger    logr.Logger
 }
 
 type Resource struct {
-	k8sClient k8sclient.Interface
-	logger    micrologger.Logger
+	k8sClient client.Client
+	logger    logr.Logger
 }
 
 func New(config Config) (*Resource, error) {
 	if config.K8sClient == nil {
 		return nil, microerror.Maskf(invalidConfigError, "%T.K8sClient must not be empty", config)
 	}
-	if config.Logger == nil {
+
+	var emptyLogger logr.Logger
+	if config.Logger == emptyLogger {
 		return nil, microerror.Maskf(invalidConfigError, "%T.Logger must not be empty", config)
 	}
 
@@ -52,10 +53,6 @@ func New(config Config) (*Resource, error) {
 	}
 
 	return r, nil
-}
-
-func (r *Resource) Name() string {
-	return Name
 }
 
 func newOrganizationNamespace(organizationName string) *corev1.Namespace {
@@ -68,5 +65,4 @@ func newOrganizationNamespace(organizationName string) *corev1.Namespace {
 			},
 		},
 	}
-
 }

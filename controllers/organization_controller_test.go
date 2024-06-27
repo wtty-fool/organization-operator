@@ -6,18 +6,18 @@ import (
 	"testing"
 	"time"
 
-	"github.com/giantswarm/k8sclient/v7/pkg/k8sclient"
-	"github.com/giantswarm/micrologger/microloggertest"
+	"github.com/go-logr/logr/testr"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
-	"github.com/giantswarm/organization-operator/api/v1alpha1"
-	"github.com/giantswarm/organization-operator/test/unittest"
+	securityv1alpha1 "github.com/giantswarm/organization-operator/api/v1alpha1"
 )
 
 const (
@@ -25,7 +25,7 @@ const (
 	orgFinalizer  = "operatorkit.giantswarm.io/organization-operator-organization-controller"
 )
 
-func Test_OrgReconcileDeleteStep(t *testing.T) {
+func TestOrganizationReconciler_Reconcile(t *testing.T) {
 	testCases := []struct {
 		name                string
 		organizationName    string
@@ -53,49 +53,55 @@ func Test_OrgReconcileDeleteStep(t *testing.T) {
 			namespace := newOrgNamespace(tc.organizationName, tc.namespaceFinalizers)
 			org := newOrg(tc.organizationName, namespace.Name)
 
-			runtimeObjects := []runtime.Object{org}
+			scheme := runtime.NewScheme()
+			_ = clientgoscheme.AddToScheme(scheme)
+			_ = securityv1alpha1.AddToScheme(scheme)
+
+			objs := []runtime.Object{org}
 			if tc.namespaceFinalizers != nil {
-				runtimeObjects = append(runtimeObjects, namespace)
+				objs = append(objs, namespace)
 			}
 
-			ctx := context.Background()
-			k8sClient := unittest.FakeK8sClient(runtimeObjects...)
+			fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(objs...).Build()
+			reconciler := &OrganizationReconciler{
+				Client: fakeClient,
+				Log:    testr.New(t),
+				Scheme: scheme,
+			}
 
-			orgController, err := newOrgController(k8sClient)
+			req := ctrl.Request{
+				NamespacedName: types.NamespacedName{
+					Name: tc.organizationName,
+				},
+			}
+
+			_, err := reconciler.Reconcile(context.Background(), req)
 			if err != nil {
-				t.Fatal(err)
+				t.Fatalf("Reconcile failed: %v", err)
 			}
 
-			req := newOrgReconcileRequest(org.Name)
-			_, err = orgController.Reconcile(ctx, req)
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			org = &v1alpha1.Organization{}
-			err = k8sClient.CtrlClient().Get(ctx, client.ObjectKey{Name: tc.organizationName}, org)
-			if tc.namespaceFinalizers == nil && (err == nil || !errors.IsNotFound(err)) {
-				t.Fatal(err)
+			var resultOrg securityv1alpha1.Organization
+			err = fakeClient.Get(context.Background(), client.ObjectKey{Name: tc.organizationName}, &resultOrg)
+			if tc.namespaceFinalizers == nil && !errors.IsNotFound(err) {
+				t.Fatalf("Expected organization to be deleted, but got error: %v", err)
 			} else if tc.namespaceFinalizers != nil {
 				if err != nil {
-					t.Fatal(err)
+					t.Fatalf("Failed to get organization: %v", err)
 				}
-				orgNamespace := &corev1.Namespace{}
-				err = k8sClient.CtrlClient().Get(ctx, client.ObjectKey{Name: namespace.Name}, orgNamespace)
-				if len(tc.namespaceFinalizers) == 0 && err == nil {
-					t.Fatalf("found unexpected namespace %s", namespace.Name)
-				} else if len(tc.namespaceFinalizers) == 0 && !errors.IsNotFound(err) {
-					t.Fatal(err)
+
+				var resultNamespace corev1.Namespace
+				err = fakeClient.Get(context.Background(), client.ObjectKey{Name: namespace.Name}, &resultNamespace)
+				if len(tc.namespaceFinalizers) == 0 && !errors.IsNotFound(err) {
+					t.Fatalf("Expected namespace to be deleted, but got error: %v", err)
 				} else if len(tc.namespaceFinalizers) > 0 && err != nil {
-					t.Fatal(err)
+					t.Fatalf("Failed to get namespace: %v", err)
 				}
 			}
 		})
 	}
 }
 
-func Test_OrgReconcileDelete(t *testing.T) {
-
+func TestOrganizationReconciler_ReconcileDelete(t *testing.T) {
 	testCases := []struct {
 		name                string
 		organizationName    string
@@ -112,91 +118,83 @@ func Test_OrgReconcileDelete(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-
 			namespace := newOrgNamespace(tc.organizationName, tc.namespaceFinalizers)
 			org := newOrg(tc.organizationName, namespace.Name)
 
-			ctx := context.Background()
-			k8sClient := unittest.FakeK8sClient(org, namespace)
+			scheme := runtime.NewScheme()
+			_ = clientgoscheme.AddToScheme(scheme)
+			_ = securityv1alpha1.AddToScheme(scheme)
 
-			orgController, err := newOrgController(k8sClient)
-			if err != nil {
-				t.Fatal(err)
+			fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(org, namespace).Build()
+			reconciler := &OrganizationReconciler{
+				Client: fakeClient,
+				Log:    testr.New(t),
+				Scheme: scheme,
 			}
 
-			req := newOrgReconcileRequest(org.Name)
+			req := ctrl.Request{
+				NamespacedName: types.NamespacedName{
+					Name: tc.organizationName,
+				},
+			}
 
 			for i := 0; i < tc.expectedIterations; i++ {
 				remainingIterations := tc.expectedIterations - i - 1
 
-				orgNamespace := &corev1.Namespace{}
-				err = k8sClient.CtrlClient().Get(ctx, client.ObjectKey{Name: namespace.Name}, orgNamespace)
+				var resultNamespace corev1.Namespace
+				err := fakeClient.Get(context.Background(), client.ObjectKey{Name: namespace.Name}, &resultNamespace)
 
 				if remainingIterations == 0 {
-					if err == nil {
-						t.Fatalf("unexpected namespace %s found", namespace.Name)
-					} else if !errors.IsNotFound(err) {
-						t.Fatal(err)
+					if !errors.IsNotFound(err) {
+						t.Fatalf("Expected namespace to be deleted, but got error: %v", err)
 					}
 				} else {
 					if err != nil {
-						t.Fatal(err)
+						t.Fatalf("Failed to get namespace: %v", err)
 					}
 					if remainingIterations == 1 {
-						orgNamespace.Finalizers = []string{}
-						err = k8sClient.CtrlClient().Update(ctx, orgNamespace)
+						resultNamespace.Finalizers = []string{}
+						err = fakeClient.Update(context.Background(), &resultNamespace)
 						if err != nil {
-							t.Fatal(err)
+							t.Fatalf("Failed to update namespace: %v", err)
 						}
 					} else {
-						if len(orgNamespace.Finalizers) == 0 {
-							t.Fatalf("namespace %s has no finalizers", orgNamespace.Name)
+						if len(resultNamespace.Finalizers) == 0 {
+							t.Fatalf("Namespace %s has no finalizers", resultNamespace.Name)
 						}
 					}
-					org = &v1alpha1.Organization{}
-					err = k8sClient.CtrlClient().Get(ctx, client.ObjectKey{Name: tc.organizationName}, org)
+
+					var resultOrg securityv1alpha1.Organization
+					err = fakeClient.Get(context.Background(), client.ObjectKey{Name: tc.organizationName}, &resultOrg)
 					if err != nil {
-						t.Fatal(err)
+						t.Fatalf("Failed to get organization: %v", err)
 					}
 				}
 
-				_, err = orgController.Reconcile(ctx, req)
+				_, err = reconciler.Reconcile(context.Background(), req)
 				if err != nil {
-					t.Fatal(err)
+					t.Fatalf("Reconcile failed: %v", err)
 				}
 			}
 
-			org = &v1alpha1.Organization{}
-			err = k8sClient.CtrlClient().Get(ctx, client.ObjectKey{Name: tc.organizationName}, org)
-			if err == nil {
-				t.Fatalf("found unexpected organization %s", org.Name)
-			} else if !errors.IsNotFound(err) {
-				t.Fatal(err)
+			var resultOrg securityv1alpha1.Organization
+			err := fakeClient.Get(context.Background(), client.ObjectKey{Name: tc.organizationName}, &resultOrg)
+			if !errors.IsNotFound(err) {
+				t.Fatalf("Expected organization to be deleted, but got error: %v", err)
 			}
 		})
 	}
-
 }
 
-func newOrgController(k8sClient k8sclient.Interface) (*Organization, error) {
-	logger := microloggertest.New()
-
-	config := OrganizationConfig{
-		K8sClient: k8sClient,
-		Logger:    logger,
-	}
-
-	return NewOrganization(config)
-}
-func newOrg(name, namespace string) *v1alpha1.Organization {
-	return &v1alpha1.Organization{
+func newOrg(name, namespace string) *securityv1alpha1.Organization {
+	return &securityv1alpha1.Organization{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:              name,
 			Finalizers:        []string{orgFinalizer},
 			DeletionTimestamp: &metav1.Time{Time: time.Now()},
 		},
-		Spec: v1alpha1.OrganizationSpec{},
-		Status: v1alpha1.OrganizationStatus{
+		Spec: securityv1alpha1.OrganizationSpec{},
+		Status: securityv1alpha1.OrganizationStatus{
 			Namespace: namespace,
 		},
 	}
@@ -207,14 +205,6 @@ func newOrgNamespace(orgName string, finalizers []string) *corev1.Namespace {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:       fmt.Sprintf("org-%s", orgName),
 			Finalizers: finalizers,
-		},
-	}
-}
-
-func newOrgReconcileRequest(orgName string) reconcile.Request {
-	return reconcile.Request{
-		NamespacedName: types.NamespacedName{
-			Name: orgName,
 		},
 	}
 }
