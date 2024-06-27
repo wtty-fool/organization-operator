@@ -83,7 +83,10 @@ func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request
 }
 
 // reconcileDelete handles the deletion of an Organization
-func (r *OrganizationReconciler) reconcileDelete(ctx context.Context, organization *securityv1alpha1.Organization) (ctrl.Result, error) {
+func (r *OrganizationReconciler) reconcileDelete(
+	ctx context.Context,
+	organization *securityv1alpha1.Organization,
+) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 
 	// Delete the associated namespace
