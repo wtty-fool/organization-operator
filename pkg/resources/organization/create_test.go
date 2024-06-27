@@ -64,15 +64,18 @@ func TestNamespaceIsCreated(t *testing.T) {
 	}
 
 	if updatedOrg.Status.Namespace != expectedNamespaceName {
-		t.Fatalf("Created namespace should be stored in organization status. Expected %s, got %s", expectedNamespaceName, updatedOrg.Status.Namespace)
+		t.Fatalf("Created namespace should be stored in organization status. Expected %s, got %s",
+			expectedNamespaceName, updatedOrg.Status.Namespace)
 	}
 
 	// Check if the namespace has the correct labels
 	if orgNamespace.Labels["giantswarm.io/organization"] != organizationName {
-		t.Fatalf("Namespace should have correct organization label. Expected %s, got %s", organizationName, orgNamespace.Labels["giantswarm.io/organization"])
+		t.Fatalf("Namespace should have correct organization label. Expected %s, got %s",
+			organizationName, orgNamespace.Labels["giantswarm.io/organization"])
 	}
 
 	if orgNamespace.Labels["giantswarm.io/managed-by"] != "organization-operator" {
-		t.Fatalf("Namespace should have correct managed-by label. Expected organization-operator, got %s", orgNamespace.Labels["giantswarm.io/managed-by"])
+		t.Fatalf("Namespace should have correct managed-by label. Expected organization-operator, got %s",
+			orgNamespace.Labels["giantswarm.io/managed-by"])
 	}
 }

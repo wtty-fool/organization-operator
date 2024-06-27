@@ -59,13 +59,15 @@ func (r *Resource) EnsureCreated(ctx context.Context, obj interface{}) error {
 	return nil
 }
 
-func (r *Resource) ensureOrganizationHasSubscriptionIdAnnotation(ctx context.Context, organization v1alpha1.Organization) error {
+func (r *Resource) ensureOrganizationHasSubscriptionIdAnnotation(ctx context.Context,
+	organization v1alpha1.Organization) error {
 	r.logger.Info(fmt.Sprintf("ensuring organization %q has subscriptionid annotation", organization.Name))
 	// Retrieve secret related to this organization.
 	secret, err := findSecret(ctx, r.k8sClient, organization.Name)
 	if IsSecretNotFound(err) {
 		// We don't want this error to block execution so we still return nil and just log the problem.
-		r.logger.Info(fmt.Sprintf("unable to find a secret for organization %s. Cannot set subscriptionid annotation", organization.Name))
+		r.logger.Info(fmt.Sprintf("unable to find a secret for organization %s. Cannot set subscriptionid annotation",
+			organization.Name))
 		return nil
 	} else if err != nil {
 		return microerror.Mask(err)
@@ -73,7 +75,8 @@ func (r *Resource) ensureOrganizationHasSubscriptionIdAnnotation(ctx context.Con
 
 	// The subscription id field is missing in non azure installations so it's ok.
 	if subscription, ok := secret.Data["azure.azureoperator.subscriptionid"]; ok && len(subscription) > 0 {
-		r.logger.Info(fmt.Sprintf("setting subscriptionid annotation to %q for organization %q", string(subscription), organization.Name))
+		r.logger.Info(fmt.Sprintf("setting subscriptionid annotation to %q for organization %q",
+			string(subscription), organization.Name))
 		patch := []byte(fmt.Sprintf(`{"metadata":{"annotations":{"subscription": "%s"}}}`, string(subscription)))
 		err = r.k8sClient.Patch(ctx, &organization, ctrl.RawPatch(types.MergePatchType, patch))
 		if err != nil {
@@ -86,7 +89,8 @@ func (r *Resource) ensureOrganizationHasSubscriptionIdAnnotation(ctx context.Con
 	return nil
 }
 
-func (r *Resource) ensureOrganizationNamespaceHasOrganizationLabels(ctx context.Context, namespace *corev1.Namespace) error {
+func (r *Resource) ensureOrganizationNamespaceHasOrganizationLabels(ctx context.Context,
+	namespace *corev1.Namespace) error {
 	r.logger.Info(fmt.Sprintf("ensuring organization namespace %#q has organization labels", namespace.Name))
 
 	currentNamespace := &corev1.Namespace{}
@@ -96,7 +100,8 @@ func (r *Resource) ensureOrganizationNamespaceHasOrganizationLabels(ctx context.
 	}
 	for key, value := range namespace.Labels {
 		if currentNamespace.Labels[key] != value {
-			r.logger.Info(fmt.Sprintf("namespace %#q has label %q=%q, but should have %q=%q", namespace.Name, key, currentNamespace.Labels[key], key, value))
+			r.logger.Info(fmt.Sprintf("namespace %#q has label %q=%q, but should have %q=%q",
+				namespace.Name, key, currentNamespace.Labels[key], key, value))
 			patch := []byte(fmt.Sprintf(`{"metadata":{"labels":{"%s": "%s"}}}`, key, value))
 			err = r.k8sClient.Patch(ctx, namespace, ctrl.RawPatch(types.MergePatchType, patch))
 			if err != nil {
