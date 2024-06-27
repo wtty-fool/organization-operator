@@ -19,6 +19,7 @@ type OrganizationReconciler struct {
 	Scheme *runtime.Scheme
 }
 
+// nolint:lll
 //+kubebuilder:rbac:groups=security.giantswarm.io,resources=organizations,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=security.giantswarm.io,resources=organizations/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=security.giantswarm.io,resources=organizations/finalizers,verbs=update
