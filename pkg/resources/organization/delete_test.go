@@ -2,7 +2,6 @@ package organization
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/go-logr/logr/testr"
@@ -99,27 +98,5 @@ func TestResource_EnsureDeleted(t *testing.T) {
 				assert.True(t, errors.IsNotFound(err), "Namespace should not exist")
 			}
 		})
-	}
-}
-
-func newOrg(name string) *v1alpha1.Organization {
-	return &v1alpha1.Organization{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: name,
-		},
-		Spec:   v1alpha1.OrganizationSpec{},
-		Status: v1alpha1.OrganizationStatus{},
-	}
-}
-
-func newOrgNamespace(orgName string) *corev1.Namespace {
-	return &corev1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: fmt.Sprintf("org-%s", orgName),
-			Labels: map[string]string{
-				"giantswarm.io/organization": orgName,
-				"giantswarm.io/managed-by":   "organization-operator",
-			},
-		},
 	}
 }
