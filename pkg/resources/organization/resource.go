@@ -4,13 +4,12 @@ import (
 	"fmt"
 
 	"github.com/giantswarm/microerror"
+	"github.com/giantswarm/organization-operator/pkg/label"
+	"github.com/giantswarm/organization-operator/pkg/project"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	"github.com/giantswarm/organization-operator/pkg/label"
-	"github.com/giantswarm/organization-operator/pkg/project"
 )
 
 const (
@@ -51,6 +50,8 @@ func New(config Config) (*Resource, error) {
 		k8sClient: config.K8sClient,
 		logger:    config.Logger,
 	}
+
+	r.logger.Info("Organization resource created")
 
 	return r, nil
 }

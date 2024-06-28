@@ -11,10 +11,16 @@ spec:
     kind: Organization
     listKind: OrganizationList
     plural: organizations
+    shortNames:
+    - org
     singular: organization
-  scope: Namespaced
+  scope: Cluster
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: Organization is the Schema for the organizations API
