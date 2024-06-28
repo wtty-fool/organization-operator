@@ -6,91 +6,120 @@ import (
 	"testing"
 
 	"github.com/go-logr/logr/testr"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
-	securityv1alpha1 "github.com/giantswarm/organization-operator/api/v1alpha1"
+	"github.com/giantswarm/organization-operator/api/v1alpha1"
 )
 
-func TestNamespaceIsDeleted(t *testing.T) {
+func TestResource_EnsureDeleted(t *testing.T) {
 	testCases := []struct {
 		name             string
 		organizationName string
+		namespaceState   string
+		expectError      bool
 	}{
 		{
-			name:             "case 0: Delete org with valid response",
-			organizationName: "giantswarm",
+			name:             "case 0: Namespace exists and is not being deleted",
+			organizationName: "test-org",
+			namespaceState:   "exists",
+			expectError:      false,
+		},
+		{
+			name:             "case 1: Namespace exists and is being deleted",
+			organizationName: "test-org",
+			namespaceState:   "deleting",
+			expectError:      false,
+		},
+		{
+			name:             "case 2: Namespace does not exist",
+			organizationName: "test-org",
+			namespaceState:   "not-exists",
+			expectError:      false,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Set up a new scheme that includes our custom APIs
 			scheme := runtime.NewScheme()
-			_ = clientgoscheme.AddToScheme(scheme)
-			_ = securityv1alpha1.AddToScheme(scheme)
+			err := clientgoscheme.AddToScheme(scheme)
+			require.NoError(t, err)
+			err = v1alpha1.AddToScheme(scheme)
+			require.NoError(t, err)
 
-			namespaceName := fmt.Sprintf("org-%s", tc.organizationName)
+			org := newOrg(tc.organizationName)
+			namespace := newOrgNamespace(tc.organizationName)
 
-			org := &securityv1alpha1.Organization{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: tc.organizationName,
-				},
-				Spec: securityv1alpha1.OrganizationSpec{},
-				Status: securityv1alpha1.OrganizationStatus{
-					Namespace: namespaceName,
-				},
+			var objs []runtime.Object
+			objs = append(objs, org)
+
+			if tc.namespaceState != "not-exists" {
+				if tc.namespaceState == "deleting" {
+					now := metav1.Now()
+					namespace.DeletionTimestamp = &now
+					// Add a finalizer to make it a valid object
+					namespace.Finalizers = []string{"test-finalizer"}
+				}
+				objs = append(objs, namespace)
 			}
 
-			namespace := &corev1.Namespace{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: namespaceName,
-				},
-			}
-
-			// Create a fake client with the organization and namespace
-			fakeClient := fake.NewClientBuilder().
-				WithScheme(scheme).
-				WithObjects(org, namespace).
-				Build()
-
-			// Create the Resource
+			fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(objs...).Build()
 			r := &Resource{
 				k8sClient: fakeClient,
 				logger:    testr.New(t),
 			}
 
-			// Run EnsureDeleted
-			ctx := context.Background()
-			err := r.EnsureDeleted(ctx, org)
-			if err != nil {
-				t.Fatalf("EnsureDeleted failed: %v", err)
+			err = r.EnsureDeleted(context.Background(), org)
+
+			if tc.expectError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
 			}
 
-			// Check if the namespace was deleted
-			deletedNamespace := &corev1.Namespace{}
-			err = fakeClient.Get(ctx, client.ObjectKey{Name: namespaceName}, deletedNamespace)
-			if !apierrors.IsNotFound(err) {
-				t.Fatalf("Expected namespace to be deleted, but got error: %v", err)
-			}
+			// Check the state of the namespace after EnsureDeleted
+			var resultNamespace corev1.Namespace
+			err = fakeClient.Get(context.Background(), client.ObjectKey{Name: namespace.Name}, &resultNamespace)
 
-			// Optionally, check if the organization's status was updated
-			updatedOrg := &securityv1alpha1.Organization{}
-			err = fakeClient.Get(ctx, client.ObjectKey{Name: tc.organizationName}, updatedOrg)
-			if err != nil {
-				t.Fatalf("Failed to get updated organization: %v", err)
-			}
-
-			// Add any additional checks for the organization's status here
-			// For example, you might want to check if the Namespace field in the status is cleared
-			if updatedOrg.Status.Namespace != "" {
-				t.Fatalf("Expected organization status namespace to be empty, but got: %s", updatedOrg.Status.Namespace)
+			switch tc.namespaceState {
+			case "exists":
+				assert.True(t, errors.IsNotFound(err), "Namespace should be deleted")
+			case "deleting":
+				assert.NoError(t, err, "Namespace should still exist")
+				assert.NotNil(t, resultNamespace.DeletionTimestamp, "Namespace should still be marked for deletion")
+				assert.NotEmpty(t, resultNamespace.Finalizers, "Namespace should still have finalizers")
+			case "not-exists":
+				assert.True(t, errors.IsNotFound(err), "Namespace should not exist")
 			}
 		})
+	}
+}
+
+func newOrg(name string) *v1alpha1.Organization {
+	return &v1alpha1.Organization{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+		},
+		Spec:   v1alpha1.OrganizationSpec{},
+		Status: v1alpha1.OrganizationStatus{},
+	}
+}
+
+func newOrgNamespace(orgName string) *corev1.Namespace {
+	return &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: fmt.Sprintf("org-%s", orgName),
+			Labels: map[string]string{
+				"giantswarm.io/organization": orgName,
+				"giantswarm.io/managed-by":   "organization-operator",
+			},
+		},
 	}
 }
