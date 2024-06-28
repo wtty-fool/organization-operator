@@ -24,6 +24,7 @@ type OrganizationReconciler struct {
 	Scheme *runtime.Scheme
 }
 
+// nolint: lll
 //+kubebuilder:rbac:groups=security.giantswarm.io,resources=organizations,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=security.giantswarm.io,resources=organizations/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=security.giantswarm.io,resources=organizations/finalizers,verbs=update
@@ -96,12 +97,14 @@ func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	return ctrl.Result{}, nil
 }
 
+// nolint: lll
 func (r *OrganizationReconciler) finalizeOrganization(ctx context.Context, org *securityv1alpha1.Organization, orgResource *organization.Resource) error {
 	// Implement your finalization logic here
 	r.Log.Info("Finalizing organization")
 	return orgResource.EnsureDeleted(ctx, org)
 }
 
+// nolint: lll
 func (r *OrganizationReconciler) handleOrphanedNamespace(ctx context.Context, orgName string, log logr.Logger) (ctrl.Result, error) {
 	// Check if the namespace still exists
 	ns := &corev1.Namespace{}

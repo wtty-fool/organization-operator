@@ -99,6 +99,7 @@ func TestOrganizationReconciler_Reconcile(t *testing.T) {
 			_, err = reconciler.Reconcile(context.Background(), req)
 			// We expect an error because the organization is not found after creation
 			assert.Error(t, err, "Reconcile should return an error")
+			// nolint: lll
 			assert.Contains(t, err.Error(), "organizations.security.giantswarm.io \"giantswarm\" not found", "Error should indicate organization not found")
 
 			// Check namespace state
@@ -175,6 +176,7 @@ func TestOrganizationReconciler_ReconcileDelete(t *testing.T) {
 				}
 
 				// Check if both organization and namespace are deleted
+				// nolint: lll
 				orgErr := fakeClient.Get(context.Background(), client.ObjectKey{Name: tc.organizationName}, &securityv1alpha1.Organization{})
 				nsErr := fakeClient.Get(context.Background(), client.ObjectKey{Name: namespace.Name}, &corev1.Namespace{})
 
