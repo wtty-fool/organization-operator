@@ -77,28 +77,3 @@ func (r *Resource) ensureOrganizationNamespaceHasOrganizationLabels(ctx context.
 
 	return nil
 }
-
-//func findSecret(ctx context.Context, client ctrl.Client, orgName string) (*corev1.Secret, error) {
-//	// Look for a secret with labels "app: credentiald" and "giantswarm.io/organization: org"
-//	secrets := &corev1.SecretList{}
-//
-//	err := client.List(ctx, secrets, ctrl.MatchingLabels{"app": "credentiald", label.Organization: orgName})
-//	if err != nil {
-//		return nil, microerror.Mask(err)
-//	}
-//
-//	if len(secrets.Items) > 0 {
-//		return &secrets.Items[0], nil
-//	}
-//	secret := &corev1.Secret{}
-//
-//	// Organization-specific secret not found, use secret named "credential-default".
-//	err = client.Get(ctx, ctrl.ObjectKey{Namespace: "giantswarm", Name: "credential-default"}, secret)
-//	if apierrors.IsNotFound(err) {
-//		return nil, microerror.Maskf(secretNotFoundError, "Unable to find secret for organization %s", orgName)
-//	} else if err != nil {
-//		return nil, microerror.Mask(err)
-//	}
-//
-//	return secret, nil
-//}
