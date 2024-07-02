@@ -4,7 +4,6 @@ go 1.21
 
 require (
 	github.com/giantswarm/k8sclient/v7 v7.2.0
-	github.com/giantswarm/k8smetadata v0.25.0
 	github.com/giantswarm/microerror v0.4.1
 	github.com/giantswarm/microkit v1.0.1
 	github.com/go-logr/logr v1.4.1
