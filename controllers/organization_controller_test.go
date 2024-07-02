@@ -69,7 +69,7 @@ func TestOrganizationReconciler_Reconcile(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			namespace := newOrgNamespace(tc.organizationName, tc.namespaceFinalizers)
+			namespace := newOrganizationNamespace(tc.organizationName, tc.namespaceFinalizers)
 			org := newOrg(tc.organizationName, namespace.Name)
 
 			scheme := runtime.NewScheme()
@@ -138,7 +138,7 @@ func TestOrganizationReconciler_ReconcileDelete(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			namespace := newOrgNamespace(tc.organizationName, tc.namespaceFinalizers)
+			namespace := newOrganizationNamespace(tc.organizationName, tc.namespaceFinalizers)
 			org := newOrgForDeletion(tc.organizationName, namespace.Name)
 
 			scheme := runtime.NewScheme()
@@ -217,7 +217,7 @@ func newOrgForDeletion(name, namespace string) *securityv1alpha1.Organization {
 	}
 }
 
-func newOrgNamespace(orgName string, finalizers []string) *corev1.Namespace {
+func newOrganizationNamespace(orgName string, finalizers []string) *corev1.Namespace {
 	return &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:       fmt.Sprintf("org-%s", orgName),

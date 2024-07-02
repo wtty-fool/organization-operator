@@ -54,7 +54,7 @@ func TestResource_EnsureDeleted(t *testing.T) {
 			require.NoError(t, err)
 
 			org := newOrg(tc.organizationName)
-			namespace := newOrgNamespace(tc.organizationName)
+			namespace := newOrganizationNamespace(tc.organizationName)
 
 			var objs []runtime.Object
 			objs = append(objs, org)

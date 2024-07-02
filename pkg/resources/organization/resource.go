@@ -70,18 +70,6 @@ func newOrganizationNamespace(organizationName string) *corev1.Namespace {
 	}
 }
 
-func newOrgNamespace(orgName string) *corev1.Namespace {
-	return &corev1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: fmt.Sprintf("org-%s", orgName),
-			Labels: map[string]string{
-				"giantswarm.io/organization": orgName,
-				"giantswarm.io/managed-by":   "organization-operator",
-			},
-		},
-	}
-}
-
 func newOrg(name string) *v1alpha1.Organization {
 	return &v1alpha1.Organization{
 		ObjectMeta: metav1.ObjectMeta{
