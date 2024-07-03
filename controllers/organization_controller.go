@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/go-logr/logr"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -36,19 +36,6 @@ func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	log := r.Log.WithValues("organization", req.NamespacedName)
 	log.Info("Starting reconciliation")
 
-	var org securityv1alpha1.Organization
-	if err := r.Get(ctx, req.NamespacedName, &org); err != nil {
-		if errors.IsNotFound(err) {
-			// Object not found, it could have been deleted after reconcile request.
-			// We need to handle the case where the namespace still exists.
-			log.Info("Organization resource not found. Checking for orphaned namespace")
-			return r.handleOrphanedNamespace(ctx, req.Name, log)
-		}
-		// Error reading the object - requeue the request.
-		log.Error(err, "Failed to get Organization")
-		return ctrl.Result{}, err
-	}
-
 	orgResource, err := organization.New(organization.Config{
 		K8sClient: r.Client,
 		Logger:    log,
@@ -58,12 +45,29 @@ func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		return ctrl.Result{}, fmt.Errorf("failed to create organization resource: %w", err)
 	}
 
+	var org securityv1alpha1.Organization
+	if err := r.Get(ctx, req.NamespacedName, &org); err != nil {
+		if errors.IsNotFound(err) {
+			// Object not found, it could have been deleted after reconcile request.
+			// We need to handle the case where the namespace still exists.
+			log.Info("Organization resource not found. Checking for orphaned namespace")
+			return ctrl.Result{}, orgResource.EnsureDeleted(ctx, &securityv1alpha1.Organization{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: req.Name,
+				},
+			})
+		}
+		// Error reading the object - requeue the request.
+		log.Error(err, "Failed to get Organization")
+		return ctrl.Result{}, err
+	}
+
 	// Check if the Organization instance is marked to be deleted
 	if org.GetDeletionTimestamp() != nil {
 		if controllerutil.ContainsFinalizer(&org, organizationFinalizerName) {
 			// Run finalization logic. If it fails, don't remove the finalizer so
 			// that we can retry during the next reconciliation.
-			if err := r.finalizeOrganization(ctx, &org, orgResource); err != nil {
+			if err := orgResource.EnsureDeleted(ctx, &org); err != nil {
 				log.Error(err, "Failed to finalize organization")
 				return ctrl.Result{}, err
 			}
@@ -95,40 +99,6 @@ func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	}
 
 	log.Info("Reconciliation completed successfully")
-	return ctrl.Result{}, nil
-}
-
-// nolint: lll
-func (r *OrganizationReconciler) finalizeOrganization(ctx context.Context, org *securityv1alpha1.Organization, orgResource *organization.Resource) error {
-	// Implement your finalization logic here
-	r.Log.Info("Finalizing organization")
-	return orgResource.EnsureDeleted(ctx, org)
-}
-
-// nolint: lll
-func (r *OrganizationReconciler) handleOrphanedNamespace(ctx context.Context, orgName string, log logr.Logger) (ctrl.Result, error) {
-	// Check if the namespace still exists
-	ns := &corev1.Namespace{}
-	nsName := fmt.Sprintf("org-%s", orgName)
-	err := r.Get(ctx, client.ObjectKey{Name: nsName}, ns)
-	if err != nil {
-		if errors.IsNotFound(err) {
-			// Namespace doesn't exist, nothing to do
-			log.Info("Namespace not found, no cleanup needed")
-			return ctrl.Result{}, nil
-		}
-		// Error reading the namespace - requeue the request
-		log.Error(err, "Failed to get Namespace")
-		return ctrl.Result{}, err
-	}
-
-	// Namespace exists, we need to delete it
-	log.Info("Deleting orphaned namespace", "namespace", nsName)
-	if err := r.Delete(ctx, ns); err != nil {
-		log.Error(err, "Failed to delete orphaned namespace")
-		return ctrl.Result{}, err
-	}
-
 	return ctrl.Result{}, nil
 }
 
