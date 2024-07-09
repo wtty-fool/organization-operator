@@ -3,8 +3,10 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/go-logr/logr"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -25,14 +27,12 @@ type OrganizationReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-// nolint: lll
-//+kubebuilder:rbac:groups=security.giantswarm.io,resources=organizations,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=security.giantswarm.io,resources=organizations/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=security.giantswarm.io,resources=organizations/finalizers,verbs=update
-//+kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
-//+kubebuilder:rbac:groups="",resources=namespaces,verbs=get;list;watch;create;update;patch;delete
-
 func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	start := time.Now()
+	defer func() {
+		reconcileDuration.Observe(time.Since(start).Seconds())
+	}()
+
 	log := r.Log.WithValues("organization", req.NamespacedName)
 	log.Info("Starting reconciliation")
 
@@ -42,6 +42,7 @@ func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	})
 	if err != nil {
 		log.Error(err, "Failed to create organization resource")
+		reconcileErrors.Inc()
 		return ctrl.Result{}, fmt.Errorf("failed to create organization resource: %w", err)
 	}
 
@@ -49,16 +50,21 @@ func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	if err := r.Get(ctx, req.NamespacedName, &org); err != nil {
 		if errors.IsNotFound(err) {
 			// Object not found, it could have been deleted after reconcile request.
-			// We need to handle the case where the namespace still exists.
 			log.Info("Organization resource not found. Checking for orphaned namespace")
-			return ctrl.Result{}, orgResource.EnsureDeleted(ctx, &securityv1alpha1.Organization{
+			err = orgResource.EnsureDeleted(ctx, &securityv1alpha1.Organization{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: req.Name,
 				},
 			})
+			if err == nil {
+				r.updateOrganizationCount(ctx)
+				namespacesExist.DeleteLabelValues(req.Name)
+			}
+			return ctrl.Result{}, err
 		}
 		// Error reading the object - requeue the request.
 		log.Error(err, "Failed to get Organization")
+		reconcileErrors.Inc()
 		return ctrl.Result{}, err
 	}
 
@@ -69,6 +75,7 @@ func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			// that we can retry during the next reconciliation.
 			if err := orgResource.EnsureDeleted(ctx, &org); err != nil {
 				log.Error(err, "Failed to finalize organization")
+				reconcileErrors.Inc()
 				return ctrl.Result{}, err
 			}
 
@@ -76,8 +83,11 @@ func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			controllerutil.RemoveFinalizer(&org, organizationFinalizerName)
 			if err := r.Update(ctx, &org); err != nil {
 				log.Error(err, "Failed to remove finalizer")
+				reconcileErrors.Inc()
 				return ctrl.Result{}, err
 			}
+			r.updateOrganizationCount(ctx)
+			namespacesExist.DeleteLabelValues(org.Name)
 		}
 		return ctrl.Result{}, nil
 	}
@@ -87,6 +97,7 @@ func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		controllerutil.AddFinalizer(&org, organizationFinalizerName)
 		if err := r.Update(ctx, &org); err != nil {
 			log.Error(err, "Failed to add finalizer")
+			reconcileErrors.Inc()
 			return ctrl.Result{}, err
 		}
 	}
@@ -95,11 +106,36 @@ func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	log.Info("Ensuring organization creation")
 	if err := orgResource.EnsureCreated(ctx, &org); err != nil {
 		log.Error(err, "Failed to ensure organization creation")
+		reconcileErrors.Inc()
 		return ctrl.Result{}, fmt.Errorf("failed to ensure organization creation: %w", err)
+	}
+	r.updateOrganizationCount(ctx)
+
+	// Check if the namespace exists
+	namespace := &corev1.Namespace{}
+	err = r.Get(ctx, client.ObjectKey{Name: org.Status.Namespace}, namespace)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			namespacesExist.WithLabelValues(org.Name).Set(0)
+		} else {
+			log.Error(err, "Failed to get namespace")
+			reconcileErrors.Inc()
+		}
+	} else {
+		namespacesExist.WithLabelValues(org.Name).Set(1)
 	}
 
 	log.Info("Reconciliation completed successfully")
 	return ctrl.Result{}, nil
+}
+
+func (r *OrganizationReconciler) updateOrganizationCount(ctx context.Context) {
+	var orgList securityv1alpha1.OrganizationList
+	if err := r.List(ctx, &orgList); err != nil {
+		r.Log.Error(err, "Failed to list organizations")
+		return
+	}
+	organizationCount.Set(float64(len(orgList.Items)))
 }
 
 // SetupWithManager sets up the controller with the Manager.
