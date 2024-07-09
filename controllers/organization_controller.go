@@ -13,7 +13,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	securityv1alpha1 "github.com/giantswarm/organization-operator/api/v1alpha1"
-	"github.com/giantswarm/organization-operator/pkg/resources/organization"
+	organization "github.com/giantswarm/organization-operator/pkg/namespace"
 )
 
 const organizationFinalizerName = "security.giantswarm.io/organization-finalizer"
