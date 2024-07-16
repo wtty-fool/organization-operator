@@ -18,14 +18,16 @@ package controller
 
 import (
 	"context"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	securityv1alpha1 "github.com/giantswarm/organization-operator/api/v1alpha1"
 )
@@ -33,52 +35,73 @@ import (
 var _ = Describe("Organization Controller", func() {
 	Context("When reconciling a resource", func() {
 		const resourceName = "test-resource"
-
 		ctx := context.Background()
-
 		typeNamespacedName := types.NamespacedName{
 			Name:      resourceName,
-			Namespace: "default", // TODO(user):Modify as needed
+			Namespace: "default",
 		}
-		organization := &securityv1alpha1.Organization{}
+		var organization *securityv1alpha1.Organization
 
 		BeforeEach(func() {
-			By("creating the custom resource for the Kind Organization")
-			err := k8sClient.Get(ctx, typeNamespacedName, organization)
-			if err != nil && errors.IsNotFound(err) {
-				resource := &securityv1alpha1.Organization{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      resourceName,
-						Namespace: "default",
-					},
-					// TODO(user): Specify other spec details if needed.
-				}
-				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
+			organization = &securityv1alpha1.Organization{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      resourceName,
+					Namespace: "default",
+				},
+				Spec: securityv1alpha1.OrganizationSpec{
+					// Add any necessary spec fields
+				},
 			}
+			Expect(k8sClient.Create(ctx, organization)).To(Succeed())
 		})
 
 		AfterEach(func() {
-			// TODO(user): Cleanup logic after each test, like removing the resource instance.
-			resource := &securityv1alpha1.Organization{}
-			err := k8sClient.Get(ctx, typeNamespacedName, resource)
-			Expect(err).NotTo(HaveOccurred())
-
-			By("Cleanup the specific resource instance Organization")
-			Expect(k8sClient.Delete(ctx, resource)).To(Succeed())
+			Expect(k8sClient.Delete(ctx, organization)).To(Succeed())
+			// Wait for the organization to be deleted
+			Eventually(func() bool {
+				err := k8sClient.Get(ctx, typeNamespacedName, &securityv1alpha1.Organization{})
+				return errors.IsNotFound(err)
+			}, time.Second*10, time.Millisecond*250).Should(BeTrue())
 		})
+
 		It("should successfully reconcile the resource", func() {
-			By("Reconciling the created resource")
 			controllerReconciler := &OrganizationReconciler{
 				Client: k8sClient,
 				Scheme: k8sClient.Scheme(),
 			}
 
-			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{
-				NamespacedName: typeNamespacedName,
-			})
-			Expect(err).NotTo(HaveOccurred())
-			// TODO(user): Add more specific assertions depending on your controller's reconciliation logic.
-			// Example: If you expect a certain status condition after reconciliation, verify it here.
+			By("Reconciling the created resource")
+			Eventually(func() error {
+				_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{
+					NamespacedName: typeNamespacedName,
+				})
+				return err
+			}, time.Second*10, time.Millisecond*250).Should(Succeed())
+
+			By("Checking if the organization has a finalizer")
+			Eventually(func() bool {
+				err := k8sClient.Get(ctx, typeNamespacedName, organization)
+				if err != nil {
+					return false
+				}
+				return controllerutil.ContainsFinalizer(organization, finalizerName)
+			}, time.Second*10, time.Millisecond*250).Should(BeTrue())
+
+			By("Checking if the namespace was created")
+			namespaceName := types.NamespacedName{Name: "org-" + resourceName}
+			createdNamespace := &corev1.Namespace{}
+			Eventually(func() error {
+				return k8sClient.Get(ctx, namespaceName, createdNamespace)
+			}, time.Second*10, time.Millisecond*250).Should(Succeed())
+
+			By("Checking if the organization status was updated")
+			Eventually(func() string {
+				err := k8sClient.Get(ctx, typeNamespacedName, organization)
+				if err != nil {
+					return ""
+				}
+				return organization.Status.Namespace
+			}, time.Second*10, time.Millisecond*250).Should(Equal(namespaceName.Name))
 		})
 	})
 })

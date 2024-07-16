@@ -40,29 +40,31 @@ type OrganizationReconciler struct {
 
 func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
-
 	log.Info("Starting reconciliation", "organization", req.NamespacedName)
 
 	organization := &securityv1alpha1.Organization{}
 	if err := r.Get(ctx, req.NamespacedName, organization); err != nil {
 		if apierrors.IsNotFound(err) {
-			log.Info("Organization resource not found. Ignoring since object must be deleted", "organization", req.NamespacedName)
+			log.Info("Organization resource not found. Ignoring since object must be deleted")
 			return ctrl.Result{}, nil
 		}
-		log.Error(err, "Failed to get Organization", "organization", req.NamespacedName)
+		log.Error(err, "Failed to get Organization")
 		return ctrl.Result{}, err
 	}
 
 	if !organization.ObjectMeta.DeletionTimestamp.IsZero() {
-		log.Info("Organization is being deleted", "organization", req.NamespacedName)
 		return r.reconcileDelete(ctx, organization)
 	}
 
 	if !controllerutil.ContainsFinalizer(organization, finalizerName) {
-		log.Info("Adding finalizer to Organization", "organization", req.NamespacedName, "finalizer", finalizerName)
+		log.Info("Adding finalizer to Organization", "finalizer", finalizerName)
 		controllerutil.AddFinalizer(organization, finalizerName)
 		if err := r.Update(ctx, organization); err != nil {
-			log.Error(err, "Failed to update Organization with finalizer", "organization", req.NamespacedName)
+			if apierrors.IsConflict(err) {
+				log.Info("Conflict occurred while adding finalizer, will retry", "error", err)
+				return ctrl.Result{Requeue: true}, nil
+			}
+			log.Error(err, "Failed to update Organization with finalizer")
 			return ctrl.Result{}, err
 		}
 	}
@@ -75,10 +77,13 @@ func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	}
 
 	if organization.Status.Namespace != namespace.Name {
-		log.Info("Updating Organization status with namespace", "organization", req.NamespacedName, "namespace", namespace.Name)
 		organization.Status.Namespace = namespace.Name
 		if err := r.Status().Update(ctx, organization); err != nil {
-			log.Error(err, "Failed to update Organization status", "organization", req.NamespacedName)
+			if apierrors.IsConflict(err) {
+				log.Info("Conflict occurred while updating status, will retry", "error", err)
+				return ctrl.Result{Requeue: true}, nil
+			}
+			log.Error(err, "Failed to update Organization status")
 			return ctrl.Result{}, err
 		}
 	}
