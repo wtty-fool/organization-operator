@@ -18,7 +18,6 @@ package controller
 
 import (
 	"context"
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -26,6 +25,9 @@ import (
 	. "github.com/onsi/gomega"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
+
+	//nolint:staticcheck
+	"k8s.io/utils/pointer"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
@@ -33,8 +35,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	securityv1alpha1 "github.com/giantswarm/organization-operator/api/v1alpha1"
-	//nolint:revive
-	//+kubebuilder:scaffold:imports
 )
 
 var cfg *rest.Config
@@ -56,18 +56,11 @@ var _ = BeforeSuite(func() {
 	testEnv = &envtest.Environment{
 		CRDDirectoryPaths:     []string{filepath.Join("..", "..", "config", "crd", "bases")},
 		ErrorIfCRDPathMissing: true,
+		UseExistingCluster:    pointer.Bool(true),
 	}
 
 	var err error
-
-	// Get the path to the envtest binaries
-	envTestBinPath := os.Getenv("KUBEBUILDER_ASSETS")
-	if envTestBinPath == "" {
-		Fail("KUBEBUILDER_ASSETS environment variable is not set. Run 'setup-envtest use -p path' and set the output as KUBEBUILDER_ASSETS")
-	}
-
-	testEnv.BinaryAssetsDirectory = envTestBinPath
-
+	// cfg is defined in this file globally.
 	cfg, err = testEnv.Start()
 	Expect(err).NotTo(HaveOccurred())
 	Expect(cfg).NotTo(BeNil())
@@ -102,8 +95,6 @@ var _ = BeforeSuite(func() {
 var _ = AfterSuite(func() {
 	cancel()
 	By("tearing down the test environment")
-	if testEnv != nil {
-		err := testEnv.Stop()
-		Expect(err).NotTo(HaveOccurred())
-	}
+	err := testEnv.Stop()
+	Expect(err).NotTo(HaveOccurred())
 })
