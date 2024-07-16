@@ -33,6 +33,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	securityv1alpha1 "github.com/giantswarm/organization-operator/api/v1alpha1"
+	//nolint:revive
 	//+kubebuilder:scaffold:imports
 )
 
@@ -73,7 +74,7 @@ var _ = BeforeSuite(func() {
 
 	err = securityv1alpha1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
-
+	//nolint:revive
 	//+kubebuilder:scaffold:scheme
 
 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
