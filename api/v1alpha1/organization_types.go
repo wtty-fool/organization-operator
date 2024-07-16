@@ -31,10 +31,15 @@ type OrganizationStatus struct {
 	Namespace string `json:"namespace,omitempty"`
 }
 
+//nolint:revive
 //+kubebuilder:object:root=true
+//nolint:revive
 //+kubebuilder:subresource:status
+//nolint:revive
 //+kubebuilder:printcolumn:name="Namespace",type="string",JSONPath=".status.namespace"
+//nolint:revive
 //+kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
+//nolint:revive
 //+kubebuilder:resource:scope=Cluster,categories={common,giantswarm},shortName={org,orgs}
 
 // Organization represents schema for managed Kubernetes namespace.
@@ -47,6 +52,7 @@ type Organization struct {
 	Status OrganizationStatus `json:"status,omitempty"`
 }
 
+//nolint:revive
 //+kubebuilder:object:root=true
 
 // OrganizationList contains a list of Organization
