@@ -16,6 +16,7 @@ package controller
 
 import (
 	"context"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -59,8 +60,12 @@ var _ = BeforeSuite(func() {
 		ErrorIfCRDPathMissing: true,
 	}
 
+	if os.Getenv("KUBEBUILDER_ASSETS") != "" {
+		testEnv.BinaryAssetsDirectory = os.Getenv("KUBEBUILDER_ASSETS")
+	}
+
 	var err error
-	// cfg is defined in this file globally.
+
 	cfg, err = testEnv.Start()
 	Expect(err).NotTo(HaveOccurred())
 	Expect(cfg).NotTo(BeNil())
