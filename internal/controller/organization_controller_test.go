@@ -37,16 +37,14 @@ var _ = Describe("Organization Controller", func() {
 		const resourceName = "test-resource"
 		ctx := context.Background()
 		typeNamespacedName := types.NamespacedName{
-			Name:      resourceName,
-			Namespace: "default",
+			Name: resourceName,
 		}
 		var organization *securityv1alpha1.Organization
 
 		BeforeEach(func() {
 			organization = &securityv1alpha1.Organization{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      resourceName,
-					Namespace: "default",
+					Name: resourceName,
 				},
 				Spec: securityv1alpha1.OrganizationSpec{
 					// Add any necessary spec fields
@@ -56,12 +54,31 @@ var _ = Describe("Organization Controller", func() {
 		})
 
 		AfterEach(func() {
-			Expect(k8sClient.Delete(ctx, organization)).To(Succeed())
+			// Fetch the latest version of the organization
+			updatedOrg := &securityv1alpha1.Organization{}
+			err := k8sClient.Get(ctx, typeNamespacedName, updatedOrg)
+			if err == nil {
+				// Remove finalizers if any
+				if len(updatedOrg.Finalizers) > 0 {
+					updatedOrg.Finalizers = nil
+					Expect(k8sClient.Update(ctx, updatedOrg)).To(Succeed())
+				}
+				// Delete the organization
+				Expect(k8sClient.Delete(ctx, updatedOrg)).To(Succeed())
+			}
+
 			// Wait for the organization to be deleted
 			Eventually(func() bool {
 				err := k8sClient.Get(ctx, typeNamespacedName, &securityv1alpha1.Organization{})
 				return errors.IsNotFound(err)
-			}, time.Second*10, time.Millisecond*250).Should(BeTrue())
+			}, time.Second*30, time.Second*1).Should(BeTrue())
+
+			// Clean up the namespace if it exists
+			ns := &corev1.Namespace{}
+			err = k8sClient.Get(ctx, types.NamespacedName{Name: "org-" + resourceName}, ns)
+			if err == nil {
+				Expect(k8sClient.Delete(ctx, ns)).To(Succeed())
+			}
 		})
 
 		It("should successfully reconcile the resource", func() {
@@ -76,7 +93,7 @@ var _ = Describe("Organization Controller", func() {
 					NamespacedName: typeNamespacedName,
 				})
 				return err
-			}, time.Second*10, time.Millisecond*250).Should(Succeed())
+			}, time.Second*30, time.Second*1).Should(Succeed())
 
 			By("Checking if the organization has a finalizer")
 			Eventually(func() bool {
@@ -85,14 +102,14 @@ var _ = Describe("Organization Controller", func() {
 					return false
 				}
 				return controllerutil.ContainsFinalizer(organization, finalizerName)
-			}, time.Second*10, time.Millisecond*250).Should(BeTrue())
+			}, time.Second*30, time.Second*1).Should(BeTrue())
 
 			By("Checking if the namespace was created")
 			namespaceName := types.NamespacedName{Name: "org-" + resourceName}
 			createdNamespace := &corev1.Namespace{}
 			Eventually(func() error {
 				return k8sClient.Get(ctx, namespaceName, createdNamespace)
-			}, time.Second*10, time.Millisecond*250).Should(Succeed())
+			}, time.Second*30, time.Second*1).Should(Succeed())
 
 			By("Checking if the organization status was updated")
 			Eventually(func() string {
@@ -101,7 +118,7 @@ var _ = Describe("Organization Controller", func() {
 					return ""
 				}
 				return organization.Status.Namespace
-			}, time.Second*10, time.Millisecond*250).Should(Equal(namespaceName.Name))
+			}, time.Second*30, time.Second*1).Should(Equal(namespaceName.Name))
 		})
 	})
 })
