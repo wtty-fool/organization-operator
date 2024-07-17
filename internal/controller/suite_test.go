@@ -33,18 +33,21 @@ var _ = BeforeSuite(func() {
 
 	By("bootstrapping test environment")
 
-	useExistingCluster := false
 	testEnv = &envtest.Environment{
 		CRDDirectoryPaths:     []string{filepath.Join("..", "..", "config", "crd", "bases")},
 		ErrorIfCRDPathMissing: true,
-		UseExistingCluster:    &useExistingCluster,
 	}
 
-	fmt.Printf("KUBEBUILDER_ASSETS: %s\n", os.Getenv("KUBEBUILDER_ASSETS"))
-	fmt.Printf("USE_EXISTING_CLUSTER: %v\n", useExistingCluster)
+	var err error
+	kubebuilderAssets := os.Getenv("KUBEBUILDER_ASSETS")
+	if kubebuilderAssets != "" {
+		testEnv.BinaryAssetsDirectory = kubebuilderAssets
+	}
+
+	fmt.Printf("KUBEBUILDER_ASSETS: %s\n", kubebuilderAssets)
+	fmt.Printf("BinaryAssetsDirectory: %s\n", testEnv.BinaryAssetsDirectory)
 	fmt.Printf("CRD Directory: %s\n", filepath.Join("..", "..", "config", "crd", "bases"))
 
-	var err error
 	cfg, err = testEnv.Start()
 	Expect(err).NotTo(HaveOccurred())
 	Expect(cfg).NotTo(BeNil())
