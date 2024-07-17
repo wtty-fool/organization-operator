@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -32,12 +31,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	securityv1alpha1 "github.com/giantswarm/organization-operator/api/v1alpha1"
-	//nolint:revive
-	//+kubebuilder:scaffold:imports
 )
-
-// These tests use Ginkgo (BDD-style Go testing framework). Refer to
-// http://onsi.github.io/ginkgo/ to learn more about Ginkgo.
 
 var cfg *rest.Config
 var k8sClient client.Client
@@ -48,34 +42,33 @@ func TestControllers(t *testing.T) {
 	RunSpecs(t, "Controller Suite")
 }
 
-const k8sVersion = "1.29.0" // Use a stable, available version
-
 var _ = BeforeSuite(func() {
 	logf.SetLogger(zap.New(zap.WriteTo(GinkgoWriter), zap.UseDevMode(true)))
 
 	By("bootstrapping test environment")
 
-	fmt.Printf("KUBEBUILDER_ASSETS: %s\n", os.Getenv("KUBEBUILDER_ASSETS"))
+	useExistingCluster := true
+	if os.Getenv("USE_EXISTING_CLUSTER") == "false" {
+		useExistingCluster = false
+	}
 
 	testEnv = &envtest.Environment{
 		CRDDirectoryPaths:     []string{filepath.Join("..", "..", "config", "crd", "bases")},
 		ErrorIfCRDPathMissing: true,
-		BinaryAssetsDirectory: filepath.Join("..", "..", "bin", "k8s", fmt.Sprintf("%s-%s-%s", k8sVersion, runtime.GOOS, runtime.GOARCH)),
+		UseExistingCluster:    &useExistingCluster,
 	}
 
-	fmt.Printf("BinaryAssetsDirectory: %s\n", testEnv.BinaryAssetsDirectory)
+	fmt.Printf("KUBEBUILDER_ASSETS: %s\n", os.Getenv("KUBEBUILDER_ASSETS"))
+	fmt.Printf("USE_EXISTING_CLUSTER: %v\n", useExistingCluster)
+	fmt.Printf("CRD Directory: %s\n", filepath.Join("..", "..", "config", "crd", "bases"))
 
 	var err error
-	// cfg is defined in this file globally.
 	cfg, err = testEnv.Start()
 	Expect(err).NotTo(HaveOccurred())
 	Expect(cfg).NotTo(BeNil())
 
 	err = securityv1alpha1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
-
-	//nolint:revive
-	//+kubebuilder:scaffold:scheme
 
 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
 	Expect(err).NotTo(HaveOccurred())
