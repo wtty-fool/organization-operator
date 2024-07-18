@@ -30,6 +30,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	securityv1alpha1 "github.com/giantswarm/organization-operator/api/v1alpha1"
 )
@@ -54,33 +55,32 @@ type OrganizationReconciler struct {
 }
 
 func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := log.FromContext(ctx)
+	logger := log.FromContext(ctx)
 
 	// Fetch the Organization instance
 	organization := &securityv1alpha1.Organization{}
-	err := r.Get(ctx, req.NamespacedName, organization)
-	if err != nil {
+	if err := r.Get(ctx, req.NamespacedName, organization); err != nil {
 		if apierrors.IsNotFound(err) {
-			log.Info("Organization resource not found. Ignoring since object must be deleted")
-			r.updateOrganizationCount(ctx)
+			// We'll ignore not-found errors, since they can't be fixed by an immediate
+			// requeue (we'll need to wait for a new notification), and we can get them
+			// on deleted requests.
 			return ctrl.Result{}, nil
 		}
-		log.Error(err, "Failed to get Organization")
+		// Error reading the object - requeue the request.
 		return ctrl.Result{}, err
 	}
 
 	// Check if the Organization instance is marked to be deleted
 	if organization.GetDeletionTimestamp() != nil {
-		result, err := r.reconcileDelete(ctx, organization)
-		r.updateOrganizationCount(ctx)
-		return result, err
+		return r.reconcileDelete(ctx, organization)
 	}
 
-	// Add finalizer for this CR if it doesn't exist
+	// Add finalizer if it doesn't exist
 	if !controllerutil.ContainsFinalizer(organization, "organization.giantswarm.io/finalizer") {
+		patch := client.MergeFrom(organization.DeepCopy())
 		controllerutil.AddFinalizer(organization, "organization.giantswarm.io/finalizer")
-		if err := r.Update(ctx, organization); err != nil {
-			return ctrl.Result{}, err
+		if err := r.Patch(ctx, organization, patch); err != nil {
+			return ctrl.Result{}, fmt.Errorf("failed to add finalizer: %w", err)
 		}
 	}
 
@@ -97,8 +97,7 @@ func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	}
 
 	if err := ctrl.SetControllerReference(organization, namespace, r.Scheme); err != nil {
-		log.Error(err, "Unable to set controller reference on Namespace")
-		return ctrl.Result{}, err
+		return ctrl.Result{}, fmt.Errorf("unable to set controller reference on Namespace: %w", err)
 	}
 
 	operationResult, err := ctrl.CreateOrUpdate(ctx, r.Client, namespace, func() error {
@@ -110,18 +109,17 @@ func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	})
 
 	if err != nil {
-		log.Error(err, "Failed to create or update Namespace")
-		return ctrl.Result{}, err
+		return ctrl.Result{}, fmt.Errorf("failed to create or update Namespace: %w", err)
 	}
 
-	log.Info("Namespace reconciled", "result", operationResult)
+	logger.Info("Namespace reconciled", "result", operationResult)
 
 	// Update Organization status
 	if organization.Status.Namespace != namespaceName {
+		patch := client.MergeFrom(organization.DeepCopy())
 		organization.Status.Namespace = namespaceName
-		if err := r.Status().Update(ctx, organization); err != nil {
-			log.Error(err, "Failed to update Organization status")
-			return ctrl.Result{}, err
+		if err := r.Status().Patch(ctx, organization, patch); err != nil {
+			return ctrl.Result{}, fmt.Errorf("failed to update Organization status: %w", err)
 		}
 	}
 
@@ -129,9 +127,7 @@ func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	return ctrl.Result{}, nil
 }
 
-//nolint:unparam
 func (r *OrganizationReconciler) reconcileDelete(ctx context.Context, organization *securityv1alpha1.Organization) (ctrl.Result, error) {
-	log := log.FromContext(ctx)
 
 	// Check if the namespace exists
 	namespace := &corev1.Namespace{}
@@ -139,21 +135,21 @@ func (r *OrganizationReconciler) reconcileDelete(ctx context.Context, organizati
 	if err == nil {
 		// Namespace exists, delete it
 		if err := r.Delete(ctx, namespace); err != nil {
-			log.Error(err, "Failed to delete Namespace")
-			return ctrl.Result{}, err
+			return ctrl.Result{}, fmt.Errorf("failed to delete Namespace: %w", err)
 		}
 	} else if !apierrors.IsNotFound(err) {
 		// Error other than NotFound
-		log.Error(err, "Failed to get Namespace")
-		return ctrl.Result{}, err
+		return ctrl.Result{}, fmt.Errorf("failed to get Namespace: %w", err)
 	}
 
 	// Remove finalizer
+	patch := client.MergeFrom(organization.DeepCopy())
 	controllerutil.RemoveFinalizer(organization, "organization.giantswarm.io/finalizer")
-	if err := r.Update(ctx, organization); err != nil {
-		return ctrl.Result{}, err
+	if err := r.Patch(ctx, organization, patch); err != nil {
+		return ctrl.Result{}, fmt.Errorf("failed to remove finalizer: %w", err)
 	}
 
+	r.updateOrganizationCount(ctx)
 	return ctrl.Result{}, nil
 }
 
@@ -171,5 +167,6 @@ func (r *OrganizationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&securityv1alpha1.Organization{}).
 		Owns(&corev1.Namespace{}).
+		WithEventFilter(predicate.GenerationChangedPredicate{}).
 		Complete(r)
 }
