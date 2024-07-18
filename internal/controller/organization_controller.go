@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/prometheus/client_golang/prometheus"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -28,9 +29,23 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/metrics"
 
 	securityv1alpha1 "github.com/giantswarm/organization-operator/api/v1alpha1"
 )
+
+var (
+	organizationsTotal = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Name: "organizations_total",
+			Help: "The total number of existing organizations",
+		},
+	)
+)
+
+func init() {
+	metrics.Registry.MustRegister(organizationsTotal)
+}
 
 // OrganizationReconciler reconciles a Organization object
 type OrganizationReconciler struct {
@@ -38,14 +53,6 @@ type OrganizationReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-//nolint:revive
-//+kubebuilder:rbac:groups=security.giantswarm.io,resources=organizations,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=security.giantswarm.io,resources=organizations/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=security.giantswarm.io,resources=organizations/finalizers,verbs=update
-//+kubebuilder:rbac:groups=core,resources=namespaces,verbs=get;list;watch;create;update;patch;delete
-
-// Reconcile is part of the main kubernetes reconciliation loop which aims to
-// move the current state of the cluster closer to the desired state.
 func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
 
@@ -55,6 +62,7 @@ func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			log.Info("Organization resource not found. Ignoring since object must be deleted")
+			r.updateOrganizationCount(ctx)
 			return ctrl.Result{}, nil
 		}
 		log.Error(err, "Failed to get Organization")
@@ -63,7 +71,9 @@ func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	// Check if the Organization instance is marked to be deleted
 	if organization.GetDeletionTimestamp() != nil {
-		return r.reconcileDelete(ctx, organization)
+		result, err := r.reconcileDelete(ctx, organization)
+		r.updateOrganizationCount(ctx)
+		return result, err
 	}
 
 	// Add finalizer for this CR if it doesn't exist
@@ -107,7 +117,6 @@ func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	log.Info("Namespace reconciled", "result", operationResult)
 
 	// Update Organization status
-	namespaceName = fmt.Sprintf("org-%s", organization.Name)
 	if organization.Status.Namespace != namespaceName {
 		organization.Status.Namespace = namespaceName
 		if err := r.Status().Update(ctx, organization); err != nil {
@@ -116,9 +125,11 @@ func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		}
 	}
 
+	r.updateOrganizationCount(ctx)
 	return ctrl.Result{}, nil
 }
 
+//nolint:unparam
 func (r *OrganizationReconciler) reconcileDelete(ctx context.Context, organization *securityv1alpha1.Organization) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
 
@@ -144,6 +155,15 @@ func (r *OrganizationReconciler) reconcileDelete(ctx context.Context, organizati
 	}
 
 	return ctrl.Result{}, nil
+}
+
+func (r *OrganizationReconciler) updateOrganizationCount(ctx context.Context) {
+	var organizationList securityv1alpha1.OrganizationList
+	if err := r.List(ctx, &organizationList); err != nil {
+		log.FromContext(ctx).Error(err, "Failed to list organizations")
+		return
+	}
+	organizationsTotal.Set(float64(len(organizationList.Items)))
 }
 
 // SetupWithManager sets up the controller with the Manager.
