@@ -1,8 +1,23 @@
+/*
+Copyright 2024.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+	http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 package util
 
 import (
 	"context"
 	"fmt"
+	"reflect"
 
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -14,32 +29,32 @@ import (
 func CreateNamespace(orgName string) *corev1.Namespace {
 	return &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: fmt.Sprintf("org-%s", orgName),
+			Name: "org-" + orgName,
+			Labels: map[string]string{
+				"giantswarm.io/organization": orgName,
+				"giantswarm.io/managed-by":   "organization-operator",
+			},
 		},
 	}
 }
 
 // EnsureNamespace creates a namespace if it doesn't exist
 func EnsureNamespace(ctx context.Context, c client.Client, namespace *corev1.Namespace) error {
-	log := log.FromContext(ctx)
-
-	err := c.Get(ctx, client.ObjectKey{Name: namespace.Name}, &corev1.Namespace{})
+	existingNamespace := &corev1.Namespace{}
+	err := c.Get(ctx, client.ObjectKey{Name: namespace.Name}, existingNamespace)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-			log.Info("Namespace not found, creating", "namespace", namespace.Name)
-			err = c.Create(ctx, namespace)
-			if err != nil {
-				log.Error(err, "Failed to create namespace", "namespace", namespace.Name)
-				return fmt.Errorf("failed to create namespace %s: %w", namespace.Name, err)
-			}
-			log.Info("Successfully created namespace", "namespace", namespace.Name)
-		} else {
-			log.Error(err, "Failed to get namespace", "namespace", namespace.Name)
-			return fmt.Errorf("failed to get namespace %s: %w", namespace.Name, err)
+			return c.Create(ctx, namespace)
 		}
-	} else {
-		log.Info("Namespace already exists", "namespace", namespace.Name)
+		return err
 	}
+
+	// Update labels if they don't match
+	if !reflect.DeepEqual(existingNamespace.Labels, namespace.Labels) {
+		existingNamespace.Labels = namespace.Labels
+		return c.Update(ctx, existingNamespace)
+	}
+
 	return nil
 }
 

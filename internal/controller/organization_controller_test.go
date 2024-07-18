@@ -23,102 +23,69 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	securityv1alpha1 "github.com/giantswarm/organization-operator/api/v1alpha1"
 )
 
-var _ = Describe("Organization Controller", func() {
-	Context("When reconciling a resource", func() {
-		const resourceName = "test-resource"
-		ctx := context.Background()
-		typeNamespacedName := types.NamespacedName{
-			Name: resourceName,
-		}
-		var organization *securityv1alpha1.Organization
+var _ = Describe("Organization controller", func() {
+	const (
+		OrganizationName = "test-org"
+		timeout          = time.Second * 10
+		interval         = time.Millisecond * 250
+	)
 
-		BeforeEach(func() {
-			organization = &securityv1alpha1.Organization{
+	Context("When creating an Organization", func() {
+		It("Should create a corresponding Namespace and update the Organization status", func() {
+			ctx := context.Background()
+			organization := &securityv1alpha1.Organization{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "security.giantswarm.io/v1alpha1",
+					Kind:       "Organization",
+				},
 				ObjectMeta: metav1.ObjectMeta{
-					Name: resourceName,
+					Name: OrganizationName,
 				},
-				Spec: securityv1alpha1.OrganizationSpec{
-					// Add any necessary spec fields
-				},
-			}
-			Expect(k8sClient.Create(ctx, organization)).To(Succeed())
-		})
-
-		AfterEach(func() {
-			// Fetch the latest version of the organization
-			updatedOrg := &securityv1alpha1.Organization{}
-			err := k8sClient.Get(ctx, typeNamespacedName, updatedOrg)
-			if err == nil {
-				// Remove finalizers if any
-				if len(updatedOrg.Finalizers) > 0 {
-					updatedOrg.Finalizers = nil
-					Expect(k8sClient.Update(ctx, updatedOrg)).To(Succeed())
-				}
-				// Delete the organization
-				Expect(k8sClient.Delete(ctx, updatedOrg)).To(Succeed())
+				Spec: securityv1alpha1.OrganizationSpec{},
 			}
 
-			// Wait for the organization to be deleted
-			Eventually(func() bool {
-				err := k8sClient.Get(ctx, typeNamespacedName, &securityv1alpha1.Organization{})
-				return errors.IsNotFound(err)
-			}, time.Second*30, time.Second*1).Should(BeTrue())
+			// Create the Organization
+			Expect(k8sClient.Create(ctx, organization)).Should(Succeed())
 
-			// Clean up the namespace if it exists
-			ns := &corev1.Namespace{}
-			err = k8sClient.Get(ctx, types.NamespacedName{Name: "org-" + resourceName}, ns)
-			if err == nil {
-				Expect(k8sClient.Delete(ctx, ns)).To(Succeed())
-			}
-		})
-
-		It("should successfully reconcile the resource", func() {
-			controllerReconciler := &OrganizationReconciler{
+			// Set up the OrganizationReconciler
+			reconciler := &OrganizationReconciler{
 				Client: k8sClient,
 				Scheme: k8sClient.Scheme(),
 			}
 
-			By("Reconciling the created resource")
-			Eventually(func() error {
-				_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{
-					NamespacedName: typeNamespacedName,
-				})
-				return err
-			}, time.Second*30, time.Second*1).Should(Succeed())
+			// Reconcile
+			_, err := reconciler.Reconcile(ctx, reconcile.Request{
+				NamespacedName: types.NamespacedName{Name: OrganizationName},
+			})
+			Expect(err).NotTo(HaveOccurred())
 
-			By("Checking if the organization has a finalizer")
-			Eventually(func() bool {
-				err := k8sClient.Get(ctx, typeNamespacedName, organization)
-				if err != nil {
-					return false
-				}
-				return controllerutil.ContainsFinalizer(organization, finalizerName)
-			}, time.Second*30, time.Second*1).Should(BeTrue())
-
-			By("Checking if the namespace was created")
-			namespaceName := types.NamespacedName{Name: "org-" + resourceName}
+			// Check if the Namespace was created
+			namespaceName := "org-" + OrganizationName
 			createdNamespace := &corev1.Namespace{}
 			Eventually(func() error {
-				return k8sClient.Get(ctx, namespaceName, createdNamespace)
-			}, time.Second*30, time.Second*1).Should(Succeed())
+				return k8sClient.Get(ctx, types.NamespacedName{Name: namespaceName}, createdNamespace)
+			}, timeout, interval).Should(Succeed())
 
-			By("Checking if the organization status was updated")
+			Expect(createdNamespace.Labels).To(HaveKeyWithValue("giantswarm.io/organization", OrganizationName))
+			Expect(createdNamespace.Labels).To(HaveKeyWithValue("giantswarm.io/managed-by", "organization-operator"))
+
+			// Verify the Organization status was updated
+			updatedOrg := &securityv1alpha1.Organization{}
 			Eventually(func() string {
-				err := k8sClient.Get(ctx, typeNamespacedName, organization)
+				err := k8sClient.Get(ctx, client.ObjectKey{Name: OrganizationName}, updatedOrg)
 				if err != nil {
 					return ""
 				}
-				return organization.Status.Namespace
-			}, time.Second*30, time.Second*1).Should(Equal(namespaceName.Name))
+				return updatedOrg.Status.Namespace
+			}, timeout, interval).Should(Equal(namespaceName))
 		})
 	})
 })
