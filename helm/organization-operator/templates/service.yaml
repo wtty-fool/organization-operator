@@ -11,5 +11,9 @@ spec:
     port: 8000
     protocol: TCP
     targetPort: http
+  - name: metrics
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
   selector:
     {{- include "labels.selector" . | nindent 4 }}
