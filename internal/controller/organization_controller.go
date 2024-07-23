@@ -60,9 +60,7 @@ func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	// Fetch the Organization instance
 	organization := &securityv1alpha1.Organization{}
 	if err := r.Get(ctx, req.NamespacedName, organization); err != nil {
-		if err != nil {
-		    return ctrl.Result{}, client.IgnoreNotFound(err)
-        	}
+		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
 	// Check if the Organization instance is marked to be deleted
