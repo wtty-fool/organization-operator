@@ -60,14 +60,9 @@ func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	// Fetch the Organization instance
 	organization := &securityv1alpha1.Organization{}
 	if err := r.Get(ctx, req.NamespacedName, organization); err != nil {
-		if apierrors.IsNotFound(err) {
-			// We'll ignore not-found errors, since they can't be fixed by an immediate
-			// requeue (we'll need to wait for a new notification), and we can get them
-			// on deleted requests.
-			return ctrl.Result{}, nil
-		}
-		// Error reading the object - requeue the request.
-		return ctrl.Result{}, err
+		if err != nil {
+		    return ctrl.Result{}, client.IgnoreNotFound(err)
+        	}
 	}
 
 	// Check if the Organization instance is marked to be deleted
