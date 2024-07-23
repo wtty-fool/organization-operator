@@ -122,17 +122,15 @@ func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 func (r *OrganizationReconciler) reconcileDelete(ctx context.Context, organization *securityv1alpha1.Organization) (ctrl.Result, error) {
 
-	// Check if the namespace exists
-	namespace := &corev1.Namespace{}
-	err := r.Get(ctx, client.ObjectKey{Name: fmt.Sprintf("org-%s", organization.Name)}, namespace)
-	if err == nil {
-		// Namespace exists, delete it
-		if err := r.Delete(ctx, namespace); err != nil {
-			return ctrl.Result{}, fmt.Errorf("failed to delete Namespace: %w", err)
-		}
-	} else if !apierrors.IsNotFound(err) {
-		// Error other than NotFound
-		return ctrl.Result{}, fmt.Errorf("failed to get Namespace: %w", err)
+	// Check if the namespace exists and delete it if it does
+	namespaceName := organization.Status.Namespace
+	if namespaceName == "" {
+		namespaceName = fmt.Sprintf("org-%s", organization.Name)
+	}
+
+	err := r.Delete(ctx, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespaceName}})
+	if err != nil && !apierrors.IsNotFound(err) {
+		return ctrl.Result{}, fmt.Errorf("failed to delete Namespace: %w", err)
 	}
 
 	// Remove finalizer
