@@ -125,12 +125,6 @@ var _ = Describe("Organization controller", func() {
 			Eventually(func() float64 {
 				return testutil.ToFloat64(organizationsTotal)
 			}, timeout, interval).Should(Equal(float64(1)))
-
-			By("Verifying the namespace for the deleted organization is removed")
-			deletedNamespace := &corev1.Namespace{}
-			Eventually(func() error {
-				return k8sClient.Get(ctx, types.NamespacedName{Name: "org-test-1"}, deletedNamespace)
-			}, timeout, interval).Should(MatchError(ContainSubstring("not found")))
 		})
 	})
 })

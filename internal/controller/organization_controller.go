@@ -22,7 +22,6 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -121,22 +120,8 @@ func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request
 }
 
 func (r *OrganizationReconciler) reconcileDelete(ctx context.Context, organization *securityv1alpha1.Organization) (ctrl.Result, error) {
-
-	// Check if the namespace exists and delete it if it does
-	namespaceName := organization.Status.Namespace
-	if namespaceName == "" {
-		namespaceName = fmt.Sprintf("org-%s", organization.Name)
-	}
-
-	err := r.Delete(ctx, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespaceName}})
-	if err != nil && !apierrors.IsNotFound(err) {
-		return ctrl.Result{}, fmt.Errorf("failed to delete Namespace: %w", err)
-	}
-
-	// Remove finalizer
-	patch := client.MergeFrom(organization.DeepCopy())
 	controllerutil.RemoveFinalizer(organization, "organization.giantswarm.io/finalizer")
-	if err := r.Patch(ctx, organization, patch); err != nil {
+	if err := r.Update(ctx, organization); err != nil {
 		return ctrl.Result{}, fmt.Errorf("failed to remove finalizer: %w", err)
 	}
 
