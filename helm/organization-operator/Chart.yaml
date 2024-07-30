@@ -4,7 +4,7 @@ description: "Chart holding organization-operator."
 icon: https://s.giantswarm.io/app-icons/organization-operator/1/dark.svg
 home: "https://github.com/giantswarm/organization-operator"
 name: "organization-operator"
-version: "1.6.3"
+version: "1.6.4"
 annotations:
   application.giantswarm.io/team: "bigmac"
   config.giantswarm.io/version: 1.x.x
