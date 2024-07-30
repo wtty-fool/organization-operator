@@ -115,7 +115,11 @@ func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		}
 	}
 
-	r.updateOrganizationCount(ctx)
+	if err := r.updateOrganizationCount(ctx); err != nil {
+		logger.Error(err, "Failed to update organization count")
+		return ctrl.Result{Requeue: true}, err
+	}
+
 	return ctrl.Result{}, nil
 }
 
@@ -130,17 +134,21 @@ func (r *OrganizationReconciler) reconcileDelete(ctx context.Context, organizati
 	}
 	log.Info("Finalizer removed from Organization")
 
-	r.updateOrganizationCount(ctx)
+	if err := r.updateOrganizationCount(ctx); err != nil {
+		log.Error(err, "Failed to update organization count")
+		return ctrl.Result{Requeue: true}, err
+	}
 
 	return ctrl.Result{}, nil
 }
-func (r *OrganizationReconciler) updateOrganizationCount(ctx context.Context) {
+
+func (r *OrganizationReconciler) updateOrganizationCount(ctx context.Context) error {
 	var organizationList securityv1alpha1.OrganizationList
 	if err := r.List(ctx, &organizationList); err != nil {
-		log.FromContext(ctx).Error(err, "Failed to list organizations")
-		return
+		return fmt.Errorf("failed to list organizations: %w", err)
 	}
 	organizationsTotal.Set(float64(len(organizationList.Items)))
+	return nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
