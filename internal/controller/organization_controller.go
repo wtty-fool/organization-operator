@@ -120,15 +120,20 @@ func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request
 }
 
 func (r *OrganizationReconciler) reconcileDelete(ctx context.Context, organization *securityv1alpha1.Organization) (ctrl.Result, error) {
+	log := log.FromContext(ctx)
+
+	originalOrg := organization.DeepCopy()
 	controllerutil.RemoveFinalizer(organization, "organization.giantswarm.io/finalizer")
-	if err := r.Update(ctx, organization); err != nil {
+	patch := client.MergeFrom(originalOrg)
+	if err := r.Patch(ctx, organization, patch); err != nil {
 		return ctrl.Result{}, fmt.Errorf("failed to remove finalizer: %w", err)
 	}
+	log.Info("Finalizer removed from Organization")
 
 	r.updateOrganizationCount(ctx)
+
 	return ctrl.Result{}, nil
 }
-
 func (r *OrganizationReconciler) updateOrganizationCount(ctx context.Context) {
 	var organizationList securityv1alpha1.OrganizationList
 	if err := r.List(ctx, &organizationList); err != nil {
