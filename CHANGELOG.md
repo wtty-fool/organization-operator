@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Migration to kubebuilder - operation simplification & metric addition
+
 ## [1.6.4] - 2024-07-30
 
 ### Changed
