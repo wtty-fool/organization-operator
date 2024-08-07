@@ -1,6 +1,6 @@
 module github.com/giantswarm/organization-operator
 
-go 1.22.0
+go 1.22
 
 toolchain go1.22.5
 
