@@ -20,8 +20,10 @@ import (
 	"context"
 	"fmt"
 
+	securityv1alpha1 "github.com/giantswarm/organization-operator/api/v1alpha1"
 	"github.com/prometheus/client_golang/prometheus"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -30,8 +32,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
-
-	securityv1alpha1 "github.com/giantswarm/organization-operator/api/v1alpha1"
 )
 
 var (
@@ -126,19 +126,36 @@ func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request
 func (r *OrganizationReconciler) reconcileDelete(ctx context.Context, organization *securityv1alpha1.Organization) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
 
-	originalOrg := organization.DeepCopy()
-	controllerutil.RemoveFinalizer(organization, "organization.giantswarm.io/finalizer")
-	patch := client.MergeFrom(originalOrg)
-	if err := r.Patch(ctx, organization, patch); err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to remove finalizer: %w", err)
+	namespaceName := fmt.Sprintf("org-%s", organization.Name)
+	namespace := &corev1.Namespace{}
+	err := r.Get(ctx, client.ObjectKey{Name: namespaceName}, namespace)
+	if err == nil {
+		if err := r.Delete(ctx, namespace); err != nil {
+			log.Error(err, "Failed to delete associated namespace")
+			return ctrl.Result{Requeue: true}, err
+		}
+		log.Info("Namespace deletion triggered, requeuing")
+		return ctrl.Result{Requeue: true}, nil
+	} else if !errors.IsNotFound(err) {
+		log.Error(err, "Failed to check for associated namespace")
+		return ctrl.Result{Requeue: true}, err
 	}
-	log.Info("Finalizer removed from Organization")
+	// At this point, the namespace is confirmed to be deleted
+	if controllerutil.ContainsFinalizer(organization, "organization.giantswarm.io/finalizer") {
+		log.Info("Removing finalizer from Organization")
+		controllerutil.RemoveFinalizer(organization, "organization.giantswarm.io/finalizer")
+		if err := r.Update(ctx, organization); err != nil {
+			log.Error(err, "Failed to remove finalizer")
+			return ctrl.Result{Requeue: true}, err
+		}
+	}
 
 	if err := r.updateOrganizationCount(ctx); err != nil {
 		log.Error(err, "Failed to update organization count")
 		return ctrl.Result{Requeue: true}, err
 	}
 
+	log.Info("Organization successfully deleted")
 	return ctrl.Result{}, nil
 }
 
