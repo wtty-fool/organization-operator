@@ -141,11 +141,13 @@ func (r *OrganizationReconciler) reconcileDelete(ctx context.Context, organizati
 		log.Error(err, "Failed to check for associated namespace")
 		return ctrl.Result{Requeue: true}, err
 	}
-	// At this point, the namespace is confirmed to be deleted
+
 	if controllerutil.ContainsFinalizer(organization, "organization.giantswarm.io/finalizer") {
 		log.Info("Removing finalizer from Organization")
+		originalOrg := organization.DeepCopy()
 		controllerutil.RemoveFinalizer(organization, "organization.giantswarm.io/finalizer")
-		if err := r.Update(ctx, organization); err != nil {
+		patch := client.MergeFrom(originalOrg)
+		if err := r.Patch(ctx, organization, patch); err != nil {
 			log.Error(err, "Failed to remove finalizer")
 			return ctrl.Result{Requeue: true}, err
 		}
