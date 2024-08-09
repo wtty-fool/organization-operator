@@ -20,7 +20,6 @@ import (
 	"context"
 	"fmt"
 
-	securityv1alpha1 "github.com/giantswarm/organization-operator/api/v1alpha1"
 	"github.com/prometheus/client_golang/prometheus"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -32,6 +31,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
+
+	securityv1alpha1 "github.com/giantswarm/organization-operator/api/v1alpha1"
 )
 
 var (
