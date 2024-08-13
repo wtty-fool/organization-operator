@@ -22,6 +22,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -126,19 +127,44 @@ func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request
 func (r *OrganizationReconciler) reconcileDelete(ctx context.Context, organization *securityv1alpha1.Organization) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
 
-	originalOrg := organization.DeepCopy()
-	controllerutil.RemoveFinalizer(organization, "organization.giantswarm.io/finalizer")
-	patch := client.MergeFrom(originalOrg)
-	if err := r.Patch(ctx, organization, patch); err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to remove finalizer: %w", err)
+	// Use the namespace name from the organization status
+	namespaceName := organization.Status.Namespace
+	if namespaceName != "" {
+		// Attempt to delete the namespace without checking for its existence first
+		namespace := &corev1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: namespaceName,
+			},
+		}
+		err := r.Delete(ctx, namespace)
+		if err == nil {
+			// If the namespace was found and delete was triggered, requeue
+			log.Info("Namespace deletion triggered, requeuing")
+			return ctrl.Result{Requeue: true}, nil
+		}
+		if !errors.IsNotFound(err) {
+			log.Error(err, "Failed to delete associated namespace")
+			return ctrl.Result{}, err
+		}
+		// If the namespace is not found, we can proceed to remove the finalizer
+		log.Info("Associated namespace not found or already deleted")
 	}
-	log.Info("Finalizer removed from Organization")
+
+	if controllerutil.ContainsFinalizer(organization, "organization.giantswarm.io/finalizer") {
+		log.Info("Removing finalizer from Organization")
+		controllerutil.RemoveFinalizer(organization, "organization.giantswarm.io/finalizer")
+		if err := r.Update(ctx, organization); err != nil {
+			log.Error(err, "Failed to remove finalizer")
+			return ctrl.Result{}, err
+		}
+	}
 
 	if err := r.updateOrganizationCount(ctx); err != nil {
 		log.Error(err, "Failed to update organization count")
-		return ctrl.Result{Requeue: true}, err
+		return ctrl.Result{}, err
 	}
 
+	log.Info("Organization successfully deleted")
 	return ctrl.Result{}, nil
 }
 
