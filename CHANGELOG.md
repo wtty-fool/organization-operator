@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.1] - 2024-08-13
+
 ### Changed
 
 - Workflows update with `devctl`
@@ -238,7 +240,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/giantswarm/organization-operator/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/giantswarm/organization-operator/compare/v2.0.1...HEAD
+[2.0.1]: https://github.com/giantswarm/organization-operator/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/giantswarm/organization-operator/compare/v1.6.4...v2.0.0
 [1.6.4]: https://github.com/giantswarm/organization-operator/compare/v1.6.3...v1.6.4
 [1.6.3]: https://github.com/giantswarm/organization-operator/compare/v1.6.2...v1.6.3
