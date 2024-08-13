@@ -54,7 +54,7 @@ var _ = Describe("Organization controller", func() {
 					Namespace: "org-test-finalizer",
 				},
 			}
-			Expect(k8sClient.Create(ctx, org)).Should(Succeed())
+			Expect(k8sClient.Create(ctx, org)).To(Succeed())
 
 			// Create the associated namespace
 			namespace := &corev1.Namespace{
@@ -62,7 +62,7 @@ var _ = Describe("Organization controller", func() {
 					Name: "org-test-finalizer",
 				},
 			}
-			Expect(k8sClient.Create(ctx, namespace)).Should(Succeed())
+			Expect(k8sClient.Create(ctx, namespace)).To(Succeed())
 
 			reconciler := &OrganizationReconciler{
 				Client: k8sClient,
@@ -70,7 +70,7 @@ var _ = Describe("Organization controller", func() {
 			}
 
 			// Trigger deletion
-			Expect(k8sClient.Delete(ctx, org)).Should(Succeed())
+			Expect(k8sClient.Delete(ctx, org)).To(Succeed())
 
 			// Wait for the organization to be fully deleted
 			Eventually(func() error {
@@ -82,12 +82,10 @@ var _ = Describe("Organization controller", func() {
 					return err
 				}
 				// Trigger reconciliation if the organization still exists
-				_, reconcileErr := reconciler.Reconcile(ctx, reconcile.Request{
+				_, err = reconciler.Reconcile(ctx, reconcile.Request{
 					NamespacedName: types.NamespacedName{Name: "test-finalizer"},
 				})
-				if reconcileErr != nil {
-					return reconcileErr
-				}
+				Expect(err).NotTo(HaveOccurred())
 				return fmt.Errorf("organization still exists")
 			}, timeout, interval).Should(Succeed())
 
@@ -103,6 +101,5 @@ var _ = Describe("Organization controller", func() {
 			// Verify that the organization count metric has been updated
 			Expect(testutil.ToFloat64(organizationsTotal)).Should(Equal(float64(0)))
 		})
-
 	})
 })
