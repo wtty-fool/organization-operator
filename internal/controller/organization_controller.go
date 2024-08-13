@@ -142,22 +142,18 @@ func (r *OrganizationReconciler) reconcileDelete(ctx context.Context, organizati
 			log.Info("Namespace deletion triggered, requeuing")
 			return ctrl.Result{Requeue: true}, nil
 		}
-
 		if !errors.IsNotFound(err) {
 			log.Error(err, "Failed to delete associated namespace")
 			return ctrl.Result{}, err
 		}
-
 		// If the namespace is not found, we can proceed to remove the finalizer
 		log.Info("Associated namespace not found or already deleted")
 	}
 
 	if controllerutil.ContainsFinalizer(organization, "organization.giantswarm.io/finalizer") {
 		log.Info("Removing finalizer from Organization")
-		originalOrg := organization.DeepCopy()
 		controllerutil.RemoveFinalizer(organization, "organization.giantswarm.io/finalizer")
-		patch := client.MergeFrom(originalOrg)
-		if err := r.Patch(ctx, organization, patch); err != nil {
+		if err := r.Update(ctx, organization); err != nil {
 			log.Error(err, "Failed to remove finalizer")
 			return ctrl.Result{}, err
 		}
