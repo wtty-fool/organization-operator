@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Implemented fixes on organization/namespace deletion
+- Implemented fixes on `organization/namespace` deletion
 
 ## [2.0.0] - 2024-08-07
 
