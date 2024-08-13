@@ -138,7 +138,7 @@ func (r *OrganizationReconciler) reconcileDelete(ctx context.Context, organizati
 		}
 		err := r.Delete(ctx, namespace)
 		if err == nil {
-        		// If the namespace was found and delete was triggered, requeue
+			// If the namespace was found and delete was triggered, requeue
 			log.Info("Namespace deletion triggered, requeuing")
 			return ctrl.Result{Requeue: true}, nil
 		}

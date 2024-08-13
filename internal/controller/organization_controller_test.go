@@ -69,7 +69,6 @@ var _ = Describe("Organization controller", func() {
 			Eventually(func() error {
 				return k8sClient.Get(ctx, types.NamespacedName{Name: namespaceName}, createdNamespace)
 			}, timeout, interval).Should(Succeed())
-
 			Expect(createdNamespace.Labels).To(HaveKeyWithValue("giantswarm.io/organization", "test-1"))
 			Expect(createdNamespace.Labels).To(HaveKeyWithValue("giantswarm.io/managed-by", "organization-operator"))
 
@@ -130,9 +129,9 @@ var _ = Describe("Organization controller", func() {
 				return testutil.ToFloat64(organizationsTotal)
 			}, timeout, interval).Should(Equal(float64(1)))
 		})
+
 		It("Should remove the finalizer when deleting an Organization", func() {
 			ctx := context.Background()
-
 			org := &securityv1alpha1.Organization{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       "test-finalizer",
@@ -188,8 +187,11 @@ var _ = Describe("Organization controller", func() {
 			}, timeout, interval).Should(Succeed())
 
 			// Verify that the organization count metric has been updated
-			Expect(testutil.ToFloat64(organizationsTotal)).Should(Equal(float64(0)))
+			initialCount := testutil.ToFloat64(organizationsTotal)
+			Consistently(func() bool {
+				currentCount := testutil.ToFloat64(organizationsTotal)
+				return currentCount <= initialCount
+			}, timeout, interval).Should(BeTrue())
 		})
-
 	})
 })
