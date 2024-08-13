@@ -101,5 +101,6 @@ var _ = Describe("Organization controller", func() {
 			// Verify that the organization count metric has been updated
 			Expect(testutil.ToFloat64(organizationsTotal)).Should(Equal(float64(0)))
 		})
+
 	})
 })
