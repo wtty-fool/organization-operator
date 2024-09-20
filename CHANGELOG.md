@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Disable zap logger development mode to avoid panicking
 - Ownership change to Shield
 
 ## [2.0.1] - 2024-08-13
