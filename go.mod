@@ -109,5 +109,5 @@ replace (
 	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.10.21
 	github.com/valyala/fasthttp => github.com/valyala/fasthttp v1.55.0
 	go.mongodb.org/mongo-driver => go.mongodb.org/mongo-driver v1.17.1
-	golang.org/x/text => golang.org/x/text v0.14.0
+	golang.org/x/text => golang.org/x/text v0.18.0
 )
