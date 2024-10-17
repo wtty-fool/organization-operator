@@ -35,6 +35,11 @@ import (
 	securityv1alpha1 "github.com/giantswarm/organization-operator/api/v1alpha1"
 )
 
+const (
+	oldFinalizer = "operatorkit.giantswarm.io/organization-operator-organization-controller"
+	newFinalizer = "organization.giantswarm.io/finalizer"
+)
+
 var (
 	organizationsTotal = prometheus.NewGauge(
 		prometheus.GaugeOpts{
@@ -69,9 +74,9 @@ func (r *OrganizationReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	}
 
 	// Add finalizer if it doesn't exist
-	if !controllerutil.ContainsFinalizer(organization, "organization.giantswarm.io/finalizer") {
+	if !controllerutil.ContainsFinalizer(organization, newFinalizer) {
 		patch := client.MergeFrom(organization.DeepCopy())
-		controllerutil.AddFinalizer(organization, "organization.giantswarm.io/finalizer")
+		controllerutil.AddFinalizer(organization, newFinalizer)
 		if err := r.Patch(ctx, organization, patch); err != nil {
 			return ctrl.Result{}, fmt.Errorf("failed to add finalizer: %w", err)
 		}
@@ -150,11 +155,22 @@ func (r *OrganizationReconciler) reconcileDelete(ctx context.Context, organizati
 		log.Info("Associated namespace not found or already deleted")
 	}
 
-	if controllerutil.ContainsFinalizer(organization, "organization.giantswarm.io/finalizer") {
-		log.Info("Removing finalizer from Organization")
-		controllerutil.RemoveFinalizer(organization, "organization.giantswarm.io/finalizer")
+	// Remove old finalizer if it exists
+	if controllerutil.ContainsFinalizer(organization, oldFinalizer) {
+		log.Info("Removing old finalizer from Organization")
+		controllerutil.RemoveFinalizer(organization, oldFinalizer)
 		if err := r.Update(ctx, organization); err != nil {
-			log.Error(err, "Failed to remove finalizer")
+			log.Error(err, "Failed to remove old finalizer")
+			return ctrl.Result{}, err
+		}
+	}
+
+	// Remove new finalizer if it exists
+	if controllerutil.ContainsFinalizer(organization, newFinalizer) {
+		log.Info("Removing new finalizer from Organization")
+		controllerutil.RemoveFinalizer(organization, newFinalizer)
+		if err := r.Update(ctx, organization); err != nil {
+			log.Error(err, "Failed to remove new finalizer")
 			return ctrl.Result{}, err
 		}
 	}
