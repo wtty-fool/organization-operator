@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.2] - 2024-10-17
+
 ### Added
 
 - Add handling on deletion for the old finalizer.
@@ -249,7 +251,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/giantswarm/organization-operator/compare/v2.0.1...HEAD
+[Unreleased]: https://github.com/giantswarm/organization-operator/compare/v2.0.2...HEAD
+[2.0.2]: https://github.com/giantswarm/organization-operator/compare/v2.0.1...v2.0.2
 [2.0.1]: https://github.com/giantswarm/organization-operator/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/giantswarm/organization-operator/compare/v1.6.4...v2.0.0
 [1.6.4]: https://github.com/giantswarm/organization-operator/compare/v1.6.3...v1.6.4
