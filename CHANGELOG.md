@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add handling on deletion for the old finalizer.
+
 ### Changed
 
 - Disable zap logger development mode to avoid panicking
