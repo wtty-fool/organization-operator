@@ -194,4 +194,69 @@ var _ = Describe("Organization controller", func() {
 			}, timeout, interval).Should(BeTrue())
 		})
 	})
+	Context("When handling Organizations with old finalizers", func() {
+		It("Should remove the old finalizer when deleting an Organization", func() {
+			ctx := context.Background()
+			oldFinalizerOrg := &securityv1alpha1.Organization{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:       "test-old-finalizer",
+					Finalizers: []string{"operatorkit.giantswarm.io/organization-operator-organization-controller"},
+				},
+				Spec: securityv1alpha1.OrganizationSpec{},
+				Status: securityv1alpha1.OrganizationStatus{
+					Namespace: "org-test-old-finalizer",
+				},
+			}
+			Expect(k8sClient.Create(ctx, oldFinalizerOrg)).To(Succeed())
+
+			// Create the associated namespace
+			namespace := &corev1.Namespace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "org-test-old-finalizer",
+				},
+			}
+			Expect(k8sClient.Create(ctx, namespace)).To(Succeed())
+
+			reconciler := &OrganizationReconciler{
+				Client: k8sClient,
+				Scheme: k8sClient.Scheme(),
+			}
+
+			// Trigger deletion
+			Expect(k8sClient.Delete(ctx, oldFinalizerOrg)).To(Succeed())
+
+			// Wait for the organization to be fully deleted
+			Eventually(func() error {
+				err := k8sClient.Get(ctx, client.ObjectKey{Name: "test-old-finalizer"}, &securityv1alpha1.Organization{})
+				if errors.IsNotFound(err) {
+					return nil
+				}
+				if err != nil {
+					return err
+				}
+				// Trigger reconciliation if the organization still exists
+				_, err = reconciler.Reconcile(ctx, reconcile.Request{
+					NamespacedName: types.NamespacedName{Name: "test-old-finalizer"},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				return fmt.Errorf("organization with old finalizer still exists")
+			}, timeout, interval).Should(Succeed())
+
+			// Verify that the namespace has been deleted
+			Eventually(func() error {
+				err := k8sClient.Get(ctx, client.ObjectKey{Name: "org-test-old-finalizer"}, &corev1.Namespace{})
+				if errors.IsNotFound(err) {
+					return nil
+				}
+				return fmt.Errorf("namespace for organization with old finalizer still exists")
+			}, timeout, interval).Should(Succeed())
+
+			// Verify that the organization count metric has been updated
+			initialCount := testutil.ToFloat64(organizationsTotal)
+			Consistently(func() bool {
+				currentCount := testutil.ToFloat64(organizationsTotal)
+				return currentCount <= initialCount
+			}, timeout, interval).Should(BeTrue())
+		})
+	})
 })
