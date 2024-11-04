@@ -21,11 +21,11 @@ workflows:
         filters:
           tags:
             only: /^v.*/
-
           branches:
             ignore:
             - main
             - master
+
     - architect/push-to-app-catalog:
         executor: app-build-suite
         context: architect
@@ -38,11 +38,11 @@ workflows:
         filters:
           tags:
             only: /^v.*/
-
           branches:
             ignore:
             - main
             - master
+
     - architect/push-to-app-collection:
         name: push-organization-operator-to-aws-app-collection
         context: architect
